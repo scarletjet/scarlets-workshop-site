@@ -1,7 +1,17 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import Stripe from "stripe";
 
 const ROOT = process.cwd();
+
+/** Lazily built Stripe client. Returns null when STRIPE_SECRET_KEY is unset, so
+ *  handlers can answer with a clean 500 instead of crashing at module load. */
+let _stripe;
+export function stripe() {
+  if (!process.env.STRIPE_SECRET_KEY) return null;
+  _stripe ??= new Stripe(process.env.STRIPE_SECRET_KEY);
+  return _stripe;
+}
 
 /** All inventions, from the generated catalog. */
 export function loadCatalog() {

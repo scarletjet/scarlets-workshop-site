@@ -1,19 +1,17 @@
-import Stripe from "stripe";
-import { loadProduct, applyCors, SITE_URL } from "./_lib.js";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+import { loadProduct, applyCors, SITE_URL, stripe } from "./_lib.js";
 
 export default async function handler(req, res) {
   if (applyCors(req, res)) return;
   if (req.method !== "GET") return res.status(405).json({ error: "GET only" });
-  if (!process.env.STRIPE_SECRET_KEY) return res.status(500).json({ error: "Stripe not configured" });
+  const sk = stripe();
+  if (!sk) return res.status(500).json({ error: "Stripe not configured" });
 
   const sessionId = req.query?.session_id || new URL(req.url, "http://x").searchParams.get("session_id");
   if (!sessionId) return res.status(400).json({ error: "session_id required" });
 
   let session;
   try {
-    session = await stripe.checkout.sessions.retrieve(sessionId);
+    session = await sk.checkout.sessions.retrieve(sessionId);
   } catch {
     return res.status(404).json({ error: "Unknown session" });
   }

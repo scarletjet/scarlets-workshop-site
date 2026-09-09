@@ -1,12 +1,10 @@
-import Stripe from "stripe";
-import { loadProduct, applyCors, readJsonBody, SITE_URL } from "./_lib.js";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+import { loadProduct, applyCors, readJsonBody, SITE_URL, stripe } from "./_lib.js";
 
 export default async function handler(req, res) {
   if (applyCors(req, res)) return;
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
-  if (!process.env.STRIPE_SECRET_KEY) return res.status(500).json({ error: "Stripe not configured" });
+  const sk = stripe();
+  if (!sk) return res.status(500).json({ error: "Stripe not configured" });
 
   const { slug } = await readJsonBody(req);
   const product = loadProduct(slug);
@@ -31,7 +29,7 @@ export default async function handler(req, res) {
       };
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await sk.checkout.sessions.create({
       mode: "payment",
       line_items: [line_item],
       metadata: { slug },
