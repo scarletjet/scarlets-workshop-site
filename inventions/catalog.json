@@ -1,0 +1,15 @@
+{
+  "generated": "2026-09-09T20:24:48.704Z",
+  "inventions": [
+    {
+      "slug": "sawhorse-clamp",
+      "name": "Sawhorse Clamp",
+      "emoji": "🗜️",
+      "tagline": "Turn any pair of 2×4s into a sawhorse in ten seconds — no hardware, no fuss.",
+      "price": 1900,
+      "currency": "usd",
+      "hero": null,
+      "downloadCount": 4
+    }
+  ]
+}

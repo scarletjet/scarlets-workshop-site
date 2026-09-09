@@ -1,0 +1,16 @@
+{
+  "name": "scarlets-workshop-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "scarletsworkshop.live — hub site, nested creations, and the inventions checkout API",
+  "scripts": {
+    "invention": "node scripts/build-invention.mjs",
+    "build:catalog": "node scripts/build-catalog.mjs",
+    "dev": "npx serve -l 8080 .",
+    "dev:api": "npx vercel dev"
+  },
+  "dependencies": {
+    "stripe": "^18.5.0"
+  }
+}

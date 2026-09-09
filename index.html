@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scarlet's Workshop — Apps · Art · Webpages</title>
-<meta name="description" content="Scarlet's Workshop creates apps, art, and webpages that are convenient to use. Browse deployed apps, live webpages, and works for sale on Gumroad and Etsy.">
+<meta name="description" content="Scarlet's Workshop creates apps, art, and webpages that are convenient to use. Browse deployed apps, live webpages, inventions with CAD/STL/PDF downloads, and works for sale on Gumroad and Etsy.">
 <link rel="canonical" href="https://scarletsworkshop.live/">
 <meta property="og:title" content="Scarlet's Workshop — Apps · Art · Webpages">
-<meta property="og:description" content="Apps, art & webpages built to be convenient. Plus works for sale on Gumroad and Etsy.">
+<meta property="og:description" content="Apps, art & webpages built to be convenient. Inventions you can download, plus works for sale on Gumroad and Etsy.">
 <meta property="og:url" content="https://scarletsworkshop.live/">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%234fd8ff'/><stop offset='1' stop-color='%23a06bff'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%2306121a'>SW</text></svg>">
@@ -276,6 +276,33 @@
   .store-cta.etsy{ background: var(--etsy); color: #fff; }
   .store-cta:hover{ transform: translateY(-2px); filter: brightness(1.08); }
 
+  /* ============ Inventions ============ */
+  .inv-grid{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 480px){ .inv-grid{ grid-template-columns: 1fr; } }
+  .inv-card{
+    display: flex; flex-direction: column;
+    text-decoration: none; color: var(--text);
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: var(--radius); overflow: hidden; transition: all .18s;
+  }
+  .inv-card:hover{ transform: translateY(-3px); border-color: rgba(79,216,255,0.45); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+  .inv-img{
+    height: 128px; display: grid; place-items: center; font-size: 40px;
+    background: linear-gradient(135deg, rgba(79,216,255,0.16), rgba(160,107,255,0.16));
+    border-bottom: 1px solid var(--card-border); overflow: hidden;
+  }
+  .inv-img img{ width: 100%; height: 100%; object-fit: cover; }
+  .inv-body{ padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .inv-title{ font-weight: 700; font-size: 14.5px; }
+  .inv-desc{ font-size: 12.5px; color: var(--muted); flex: 1; }
+  .inv-foot{ display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .inv-price{ font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-weight: 700; font-size: 14px; color: var(--accent); }
+  .inv-tag{
+    font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
+    padding: 3px 10px; border-radius: 999px;
+    background: rgba(160,107,255,0.15); color: var(--accent-2); border: 1px solid rgba(160,107,255,0.35);
+  }
+
   footer{
     text-align: center; color: var(--muted);
     font-size: 12.5px; margin-top: 30px;
@@ -301,6 +328,7 @@
   <nav>
     <a href="#apps">Apps</a>
     <a href="#webpages">Webpages</a>
+    <a href="#inventions">Inventions</a>
     <a href="#shop">Shop</a>
   </nav>
 
@@ -319,6 +347,11 @@
   <section id="webpages">
     <div class="sec-head"><h2>Webpages</h2><span class="count" id="pages-count"></span></div>
     <div class="links" id="page-links"></div>
+  </section>
+
+  <section id="inventions" hidden>
+    <div class="sec-head"><h2>Inventions</h2><span class="count" id="inv-count"></span></div>
+    <div class="inv-grid" id="inv-grid"></div>
   </section>
 
   <section id="shop">
@@ -499,6 +532,36 @@ document.getElementById("page-links").innerHTML = PAGES.map(p => `
     <span class="link-arrow">→</span>
   </a>`).join("");
 document.getElementById("pages-count").textContent = `// ${PAGES.length} live`;
+
+/* --- Inventions: rendered from inventions/catalog.json (built by scripts/build-catalog.mjs) --- */
+(function renderInventions(){
+  fetch("inventions/catalog.json", { cache: "no-cache" })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      const items = data && Array.isArray(data.inventions) ? data.inventions : [];
+      if (!items.length) return;
+      const fmt = it => {
+        const amt = (it.price || 0) / 100;
+        try { return new Intl.NumberFormat(undefined, { style: "currency", currency: (it.currency || "usd").toUpperCase() }).format(amt); }
+        catch { return "$" + amt.toFixed(2); }
+      };
+      document.getElementById("inv-grid").innerHTML = items.map(it => `
+        <a class="inv-card" href="inventions/${esc(it.slug)}/">
+          <span class="inv-img">${it.hero ? `<img src="${esc(it.hero)}" alt="${esc(it.name)}">` : (it.emoji || "🛠️")}</span>
+          <span class="inv-body">
+            <span class="inv-title">${esc(it.name)}</span>
+            <span class="inv-desc">${esc(it.tagline || "")}</span>
+            <span class="inv-foot">
+              <span class="inv-price">${it.price > 0 ? fmt(it) : "—"}</span>
+              <span class="inv-tag">Download</span>
+            </span>
+          </span>
+        </a>`).join("");
+      document.getElementById("inv-count").textContent = `// ${items.length} for sale`;
+      document.getElementById("inventions").hidden = false;
+    })
+    .catch(() => {});
+})();
 
 const grid = document.getElementById("shop-grid");
 function renderShop(filter){
