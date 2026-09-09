@@ -89,14 +89,13 @@ function render(data){
       <h2>Your downloads</h2>
       <div class="dl">
         ${dls.length ? dls.map(d => `
-          <a href="${esc(d.url || "#")}" ${d.url ? 'download' : 'aria-disabled="true"'}>
+          <a href="${esc(d.url || "#")}" ${d.url ? "download" : 'aria-disabled="true"'}>
             <span class="ext">${esc(extOf(d.file || d.label))}</span>
             <span>${esc(d.label || d.file)}</span>
             <span class="arrow">↓</span>
           </a>`).join("") : '<p class="note">Files are being prepared — check your receipt email.</p>'}
       </div>
-      ${dls.some(d => !d.url) ? '<p class="note">Some files aren’t linked yet; they’ll arrive by email shortly.</p>' : ''}
-      <p class="note">Keep this page bookmarked — the links stay valid.</p>
+      <p class="note">Keep this page bookmarked${data.windowDays ? ` — the links stay valid for ${Number(data.windowDays)} days` : " — the links stay valid"}.</p>
     </div>`;
 }
 </script>

@@ -34,6 +34,12 @@ export function loadProduct(slug) {
 
 export const SITE_URL = (process.env.SITE_URL || "https://scarletsworkshop.live").replace(/\/$/, "");
 
+/** Absolute base URL of this API deployment, for building links back to our own
+ *  routes (e.g. the /api/download links handed to the buyer). */
+export function apiBase(req) {
+  return (process.env.API_URL || `https://${req.headers.host}`).replace(/\/$/, "");
+}
+
 /** Origins allowed to call this API. Add previews via ALLOWED_ORIGINS (comma-separated). */
 const ALLOWED = new Set(
   [SITE_URL, "http://localhost:8080", "http://127.0.0.1:8080", ...(process.env.ALLOWED_ORIGINS || "").split(",")]

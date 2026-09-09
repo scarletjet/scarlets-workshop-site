@@ -6,11 +6,13 @@
   "description": "scarletsworkshop.live — hub site, nested creations, and the inventions checkout API",
   "scripts": {
     "invention": "node scripts/build-invention.mjs",
+    "blob:push": "node scripts/upload-downloads.mjs",
     "build:catalog": "node scripts/build-catalog.mjs",
     "dev": "npx serve -l 8080 .",
     "dev:api": "npx vercel dev"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
     "stripe": "^18.5.0"
   }
 }

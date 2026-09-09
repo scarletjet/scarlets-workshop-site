@@ -1,4 +1,6 @@
-import { loadProduct, applyCors, SITE_URL, stripe } from "./_lib.js";
+import { loadProduct, applyCors, apiBase, stripe } from "./_lib.js";
+
+const WINDOW_DAYS = Number(process.env.DOWNLOAD_WINDOW_DAYS || 45);
 
 export default async function handler(req, res) {
   if (applyCors(req, res)) return;
@@ -21,21 +23,22 @@ export default async function handler(req, res) {
 
   const slug = session.metadata?.slug;
   const product = loadProduct(slug) || {};
-  const downloads = (Array.isArray(product.downloads) ? product.downloads : []).map(d => ({
-    file: d.file,
-    label: d.label || d.file,
-    // absolute so the link works from the success page; falls back to repo-hosted path
-    url: d.url
-      ? d.url
-      : d.file
-        ? `${SITE_URL}/inventions/${slug}/downloads/${d.file}`
-        : "",
-  }));
+  const base = apiBase(req);
+  // Every link goes through /api/download, which re-checks payment on each hit and
+  // streams the file from private storage. It never exposes the underlying URL.
+  const downloads = (Array.isArray(product.downloads) ? product.downloads : [])
+    .filter(d => d.file)
+    .map(d => ({
+      file: d.file,
+      label: d.label || d.file,
+      url: `${base}/api/download?session_id=${encodeURIComponent(sessionId)}&file=${encodeURIComponent(d.file)}`,
+    }));
 
   return res.status(200).json({
     paid: true,
     name: product.name || slug,
     buyerName: session.customer_details?.name || null,
     downloads,
+    windowDays: WINDOW_DAYS > 0 ? WINDOW_DAYS : null,
   });
 }

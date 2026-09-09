@@ -3,3 +3,7 @@ node_modules/
 .env
 .env.*
 .DS_Store
+
+# Paid invention files live in private Vercel Blob, never in the public repo.
+# `npm run invention` drops them here; `npm run blob:push -- <slug>` uploads them.
+inventions/*/downloads/

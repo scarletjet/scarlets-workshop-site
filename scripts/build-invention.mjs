@@ -7,16 +7,18 @@
  *   listing.md   name, price, emoji, sales copy   (required)
  *   brief.md     internal notes                    (not published; optional)
  *   images/      photos                            (copied, renamed 01.jpg, 02.jpg, …)
- *   downloads/   the CAD/STL/PDF files             (names recorded; files NOT copied — see below)
+ *   downloads/   the CAD/STL/PDF files             (copied to a gitignored folder)
  *
  * Writes:
  *   inventions/<slug>/index.html     (copy of _template)
  *   inventions/<slug>/product.json   (from listing.md; review before committing)
  *   inventions/<slug>/images/*
+ *   inventions/<slug>/downloads/*    (gitignored — never committed)
  * then rebuilds inventions/catalog.json.
  *
- * Download files are left where they are on purpose — decide per file whether it goes
- * in the public repo or behind a share link, then fill in product.json "downloads[].url".
+ * The download files stay out of git. After reviewing product.json, upload them to
+ * private Blob storage with:  npm run blob:push -- <slug>
+ * (Leave downloads[].url empty for Blob-hosted files; set it only for an external link.)
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, statSync } from "node:fs";
 import { join, dirname, basename, extname } from "node:path";
@@ -80,13 +82,16 @@ if (existsSync(srcImg)) {
   });
 }
 
-// ---- downloads (names only) ----------------------------------------------
+// ---- downloads (copied into a gitignored folder) ------------------------
 const downloads = [];
 const srcDl = join(src, "downloads");
 if (existsSync(srcDl)) {
+  const destDl = join(destDir, "downloads");
+  mkdirSync(destDl, { recursive: true });
   for (const f of readdirSync(srcDl).sort()) {
     if (f.startsWith(".")) continue;
     if (statSync(join(srcDl, f)).isDirectory()) continue;
+    copyFileSync(join(srcDl, f), join(destDl, f));
     downloads.push({ file: f, label: labelFor(f), url: "" });
   }
 }
@@ -127,7 +132,10 @@ console.log(`
 ✓ inventions/${slug}/
     product.json   ${priceCents ? "$" + (priceCents / 100).toFixed(2) : "no price — set one"}
     images         ${images.length}
-    downloads      ${downloads.length}${downloads.length ? "  (set each downloads[].url in product.json)" : ""}
+    downloads      ${downloads.length}  (copied to inventions/${slug}/downloads/, gitignored)
 
-Next: review inventions/${slug}/product.json, then  git add inventions/${slug}  &&  git commit
+Next:
+  1. review  inventions/${slug}/product.json
+  2. npm run blob:push -- ${slug}      # upload the paid files to private storage
+  3. git add inventions/${slug}  &&  git commit   # commits page + images, not downloads/
 `);
