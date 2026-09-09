@@ -17,22 +17,37 @@ code. These functions deploy to a host that can (Vercel's free tier fits), on a
 different URL like `https://scarlets-workshop-api.vercel.app`. The site calls that
 URL; the domain and Pages setup don't change.
 
-## Deploy (Vercel)
+## Status
 
-1. `npm i` locally to lock `stripe` into `package-lock.json`, commit it.
-2. Import this repo as a new Vercel project (framework preset: **Other**). Vercel
-   auto-detects the `api/` folder — no build step needed.
-3. Set environment variables in the Vercel project:
-   - `STRIPE_SECRET_KEY` — from the Stripe dashboard (use a **test** key first: `sk_test_…`)
+Deployed to the Vercel project **`scarlets-workshop-api`** (team `scarlet-hawk`):
+`https://scarlets-workshop-api.vercel.app` — already wired into `inventions/config.js`.
+
+It is **not live yet**: the functions return `500 {"error":"Stripe not configured"}`
+until the environment variables below are set.
+
+## Make it live
+
+1. In the Vercel project → **Settings → Environment Variables**, add (Production):
+   - `STRIPE_SECRET_KEY` — from the Stripe dashboard. Use a **test** key first (`sk_test_…`).
    - `SITE_URL` — `https://scarletsworkshop.live`
-   - `ALLOWED_ORIGINS` *(optional)* — extra origins allowed to call the API, comma-separated
-     (add your Vercel preview URL while testing)
-4. Deploy. Note the production URL.
-5. Put that URL in `inventions/config.js` (`window.WORKSHOP_API`), commit, push —
-   GitHub Pages picks it up in a minute.
+   - `ALLOWED_ORIGINS` *(optional)* — extra origins allowed to call the API, comma-separated.
+2. **Redeploy** (Deployments → ⋯ → Redeploy) so the vars take effect.
+3. `curl -X POST https://scarlets-workshop-api.vercel.app/api/checkout -H 'content-type: application/json' -d '{"slug":"sawhorse-clamp"}'`
+   should now return `{"url":"https://checkout.stripe.com/..."}`.
+4. Buy-flow test: open an invention page, click Buy, pay with test card
+   `4242 4242 4242 4242` (any future date, any CVC).
+5. When it works, swap `STRIPE_SECRET_KEY` for the live key and redeploy.
 
-Test with a Stripe test card (`4242 4242 4242 4242`, any future date, any CVC).
-When it works, swap `STRIPE_SECRET_KEY` for the live key.
+## Redeploying after code changes
+
+This project was created by a direct file upload, so it is **not linked to Git** —
+pushes to `main` do not redeploy it. Either:
+
+- link it in Vercel → **Settings → Git** (connect `scarletjet/scarlets-workshop-site`), or
+- re-upload with `npx vercel --prod` from the repo root.
+
+Once linked, `vercel.json` in the repo root drives the build (it bundles
+`inventions/**` into each function via `includeFiles`).
 
 ## Local run
 
