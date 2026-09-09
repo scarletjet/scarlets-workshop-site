@@ -1,0 +1,16 @@
+{
+  "slug": "",
+  "name": "",
+  "emoji": "🛠️",
+  "tagline": "",
+  "price": 0,
+  "currency": "usd",
+  "description": "",
+  "images": [],
+  "downloads": [
+    { "file": "part.step", "label": "Parametric CAD (STEP)", "url": "" },
+    { "file": "part.stl", "label": "Ready-to-print mesh (STL)", "url": "" },
+    { "file": "guide.pdf", "label": "Assembly guide (PDF)", "url": "" }
+  ],
+  "stripePriceId": ""
+}

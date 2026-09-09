@@ -1,0 +1,17 @@
+{
+  "slug": "sawhorse-clamp",
+  "name": "Sawhorse Clamp",
+  "emoji": "🗜️",
+  "tagline": "Turn any pair of 2×4s into a sawhorse in ten seconds — no hardware, no fuss.",
+  "price": 1900,
+  "currency": "usd",
+  "description": "The Sawhorse Clamp is a single printed part that grips a 2×4 on edge and holds a second 2×4 flat across it at a locked 90°. Two of them and a couple of offcuts give you a rock-solid work surface anywhere — the truck bed, the driveway, a friend's garage — then they drop in a tool bag when you're done.\n\nDesigned around common filament (PETG or PLA+ both work), printable on a 220×220 bed with no supports. The parametric STEP file lets you resize the jaw for 2×6 or metric timber.\n\nYou get the print files, a one-page assembly guide, and the editable CAD source. Print as many as you want for your own shop.",
+  "images": [],
+  "downloads": [
+    { "file": "sawhorse-clamp.step", "label": "Parametric CAD source (STEP)", "url": "" },
+    { "file": "sawhorse-clamp.stl", "label": "Ready-to-print mesh (STL)", "url": "" },
+    { "file": "sawhorse-clamp.3mf", "label": "Pre-oriented project (3MF)", "url": "" },
+    { "file": "sawhorse-clamp-guide.pdf", "label": "Print settings + assembly guide (PDF)", "url": "" }
+  ],
+  "stripePriceId": ""
+}
