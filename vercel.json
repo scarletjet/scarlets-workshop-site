@@ -4,7 +4,10 @@
   "buildCommand": "node scripts/build-catalog.mjs",
   "outputDirectory": ".",
   "functions": {
-    "api/*.js": { "maxDuration": 10 }
+    "api/*.js": {
+      "maxDuration": 10,
+      "includeFiles": "inventions/**"
+    }
   },
   "cleanUrls": true
 }
