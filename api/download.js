@@ -1,4 +1,5 @@
 import { Readable } from "node:stream";
+import { get as getBlob } from "@vercel/blob";
 import { loadProduct, applyCors, SITE_URL, stripe } from "./_lib.js";
 
 /* GET /api/download?session_id=<cs_…>&file=<name>
@@ -68,8 +69,7 @@ export default async function handler(req, res) {
 
   let blob;
   try {
-    const { get } = await import("@vercel/blob");
-    blob = await get(`inventions/${slug}/${file}`, { access: "private" });
+    blob = await getBlob(`inventions/${slug}/${file}`, { access: "private" });
   } catch {
     return res.status(502).json({ error: "Storage error — try again in a minute" });
   }
