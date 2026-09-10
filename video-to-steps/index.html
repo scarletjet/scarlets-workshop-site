@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video → Steps — App Overview · Scarlet's Workshop</title>
+<meta name="description" content="Paste a TikTok or Instagram how-to and get back clean, numbered instructions. An overview of Video → Steps, Product 01 from Scarlet's Workshop.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%234fd8ff'/><stop offset='1' stop-color='%23a06bff'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%2306121a'>SW</text></svg>">
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f4f2ef;
+    --panel: #ffffff;
+    --panel-2: #faf8f6;
+    --ink: #1b1517;
+    --muted: #6c6266;
+    --line: #e5ded9;
+    --accent: #4f4fc9;          /* indigo — the app's own colour */
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(79,79,201,.10);
+    --brand: #cf2436;           /* scarlet — the Workshop mark */
+    --good: #1a8f5a;
+    --shadow: 0 1px 0 rgba(27,21,23,.04), 0 14px 34px -18px rgba(27,21,23,.22);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141012;
+      --panel: #1d1618;
+      --panel-2: #221a1d;
+      --ink: #f1ebe8;
+      --muted: #a89ea1;
+      --line: #2f2529;
+      --accent: #8f8ff6;
+      --accent-ink: #14101a;
+      --accent-soft: rgba(143,143,246,.15);
+      --brand: #ff5a68;
+      --good: #46cf8c;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 18px 40px -20px rgba(0,0,0,.65);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: clamp(28px, 6vw, 72px) clamp(20px, 5vw, 40px) 96px; }
+
+  .mono { font-family: "Cascadia Code", "JetBrains Mono", "SF Mono", ui-monospace, Consolas, "Liberation Mono", monospace; }
+  .eyebrow {
+    font-family: "Cascadia Code", "JetBrains Mono", "SF Mono", ui-monospace, Consolas, monospace;
+    font-size: .74rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--muted); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .eyebrow b { color: var(--brand); font-weight: 700; }
+  .eyebrow a.brand { color: var(--brand); font-weight: 700; text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--brand) 40%, transparent); }
+  .eyebrow a.brand:hover { border-bottom-color: currentColor; }
+  .eyebrow .sep { width: 22px; height: 1px; background: var(--line); }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 1px solid var(--line); padding-bottom: 30px; margin-bottom: 44px; }
+  h1 {
+    font-size: clamp(2.3rem, 7vw, 3.6rem); line-height: 1.02; letter-spacing: -.03em;
+    font-weight: 800; margin: 18px 0 0; text-wrap: balance;
+  }
+  h1 .arrow { color: var(--accent); font-weight: 700; }
+  .lead { font-size: clamp(1.05rem, 2.4vw, 1.24rem); color: var(--muted); max-width: 60ch; margin: 16px 0 0; }
+  .status-row { display: flex; align-items: center; gap: 14px; margin-top: 24px; flex-wrap: wrap; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px; font-family: "Cascadia Code","JetBrains Mono",ui-monospace,monospace;
+    font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+    padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel);
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 22%, transparent); }
+  .pill.ghost { color: var(--muted); }
+
+  section { margin-top: 52px; }
+  .kicker {
+    font-family: "Cascadia Code","JetBrains Mono",ui-monospace,monospace;
+    font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--accent);
+    margin: 0 0 18px;
+  }
+  h2 { font-size: clamp(1.4rem, 3vw, 1.7rem); letter-spacing: -.02em; margin: 0 0 6px; font-weight: 750; text-wrap: balance; }
+
+  /* ---- pipeline (real sequence) ---- */
+  .pipe { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); counter-reset: s; }
+  @media (max-width: 720px) { .pipe { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 440px) { .pipe { grid-template-columns: 1fr; } }
+  .step {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px 20px;
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .step::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--accent); opacity: .8; }
+  .step .num { font-family: "Cascadia Code","JetBrains Mono",ui-monospace,monospace; font-size: .78rem; color: var(--accent); font-weight: 700; letter-spacing: .05em; }
+  .step h3 { margin: 10px 0 6px; font-size: 1.02rem; letter-spacing: -.01em; }
+  .step p { margin: 0; font-size: .92rem; color: var(--muted); line-height: 1.5; }
+
+  /* ---- features ---- */
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 440px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); }
+  .card .tag { font-family: "Cascadia Code","JetBrains Mono",ui-monospace,monospace; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .card h3 { margin: 9px 0 5px; font-size: 1.04rem; letter-spacing: -.01em; }
+  .card p { margin: 0; font-size: .9rem; color: var(--muted); line-height: 1.5; }
+
+  /* ---- spec table ---- */
+  .spec { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); box-shadow: var(--shadow); }
+  .spec .row { display: grid; grid-template-columns: 168px 1fr; gap: 16px; padding: 14px 18px; border-top: 1px solid var(--line); }
+  .spec .row:first-child { border-top: 0; }
+  .spec dt { margin: 0; font-family: "Cascadia Code","JetBrains Mono",ui-monospace,monospace; font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); align-self: center; }
+  .spec dd { margin: 0; font-size: .96rem; }
+  @media (max-width: 520px) { .spec .row { grid-template-columns: 1fr; gap: 4px; } }
+
+  .note {
+    margin-top: 22px; border-left: 3px solid var(--accent); background: var(--accent-soft);
+    padding: 16px 18px; border-radius: 0 12px 12px 0; font-size: .96rem;
+  }
+  .note b { color: var(--ink); }
+
+  .scope { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 520px) { .scope { grid-template-columns: 1fr; } }
+  .scope div { border: 1px dashed var(--line); border-radius: 12px; padding: 14px 16px; font-size: .92rem; color: var(--muted); }
+  .scope div b { display: block; color: var(--ink); font-size: .82rem; letter-spacing: .04em; margin-bottom: 4px; }
+
+  footer { margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: .86rem; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  footer .mono { font-size: .78rem; }
+
+  a { color: var(--accent); text-underline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  .reveal { opacity: 0; transform: translateY(10px); animation: rise .6s cubic-bezier(.2,.7,.2,1) forwards; }
+  .reveal:nth-child(2){animation-delay:.05s}.reveal:nth-child(3){animation-delay:.1s}
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .reveal { animation: none; opacity: 1; transform: none; } }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow"><a class="brand" href="../../">Scarlet's Workshop</a><span class="sep"></span><span>Product 01</span><span class="sep"></span><span>Overview</span></div>
+    <h1>Video&nbsp;<span class="arrow">→</span>&nbsp;Steps</h1>
+    <p class="lead">Paste a TikTok or Instagram how-to and get back clean, numbered instructions — the recipe without the 90-second scroll-back.</p>
+    <div class="status-row">
+      <span class="pill"><span class="dot"></span>Live · deployed on Render</span>
+      <span class="pill ghost">Works end-to-end</span>
+      <span class="pill ghost">Installable on Android</span>
+    </div>
+  </header>
+
+  <section>
+    <p class="kicker">How it works</p>
+    <h2>Four moves, one tap</h2>
+    <p class="lead" style="margin-bottom:22px">A shared link becomes a written guide in a single pass — no manual transcribing, no copy-paste gymnastics.</p>
+    <div class="pipe">
+      <div class="step"><div class="num">01</div><h3>Share a link</h3><p>Paste it, or tap Share in TikTok / Instagram and pick the app straight from the Android share sheet.</p></div>
+      <div class="step"><div class="num">02</div><h3>Pull the audio</h3><p>yt-dlp + ffmpeg grab just the spoken track and shrink it to a small mono clip.</p></div>
+      <div class="step"><div class="num">03</div><h3>Understand it</h3><p>One call to Google Gemini listens to the audio and writes the title, materials, and ordered steps.</p></div>
+      <div class="step"><div class="num">04</div><h3>Keep it</h3><p>Auto-tagged by topic and saved to your history, ready to reopen, filter, or copy.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">What it does</p>
+    <h2>Features in hand today</h2>
+    <div class="grid" style="margin-top:18px">
+      <div class="card"><div class="tag">Sources</div><h3>TikTok &amp; Instagram</h3><p>Public links from both platforms, pasted or shared.</p></div>
+      <div class="card"><div class="tag">Install</div><h3>Android share target</h3><p>Add to home screen and it appears in the native share menu.</p></div>
+      <div class="card"><div class="tag">Organise</div><h3>Auto-tagging</h3><p>Each guide is sorted into a topic — Food, Tech, Home, Fitness…</p></div>
+      <div class="card"><div class="tag">Library</div><h3>History sidebar</h3><p>Filter by topic, reopen a past guide, or delete it.</p></div>
+      <div class="card"><div class="tag">Output</div><h3>Copy &amp; transcript</h3><p>One-tap copy of the whole guide, plus the raw transcript on demand.</p></div>
+      <div class="card"><div class="tag">Guardrail</div><h3>10-minute cap</h3><p>Long videos are turned away before download to keep it fast and cheap.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">Under the hood</p>
+    <h2>Built lean on purpose</h2>
+    <dl class="spec" style="margin-top:18px">
+      <div class="row"><dt>Backend</dt><dd>Python · FastAPI</dd></div>
+      <div class="row"><dt>Fetch</dt><dd class="mono" style="font-size:.9rem">yt-dlp + ffmpeg + Deno</dd></div>
+      <div class="row"><dt>Intelligence</dt><dd>OpenRouter → Gemini 2.5 Flash — a single audio call does transcription <em>and</em> step-writing</dd></div>
+      <div class="row"><dt>Storage</dt><dd>SQLite (topic-tagged history)</dd></div>
+      <div class="row"><dt>Frontend</dt><dd>Installable PWA — plain HTML / CSS / JS, no framework</dd></div>
+      <div class="row"><dt>Ship</dt><dd>Docker on Render · source on GitHub (private)</dd></div>
+    </dl>
+    <div class="note"><b>The frugal trick:</b> instead of a paid transcription service plus a separate writing model, one audio-capable model does both jobs in a single call — pennies per video, on one API key.</div>
+  </section>
+
+  <section>
+    <p class="kicker">Scope</p>
+    <h2>What v1 is — and isn't</h2>
+    <div class="scope" style="margin-top:18px">
+      <div><b>HANDLES</b>Videos where someone talks through the steps. TikTok and Instagram links. Short-form how-tos, recipes, tips.</div>
+      <div><b>NOT YET</b>Silent / text-only videos, your own uploaded files, and other platforms — all mapped on the roadmap.</div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Video → Steps · v1</span>
+    <a class="mono" href="../../">More from the Workshop →</a>
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('section, .masthead').forEach((el, i) => {
+    el.classList.add('reveal'); el.style.animationDelay = (i * 0.05) + 's';
+  });
+</script>
+</body>
+</html>
