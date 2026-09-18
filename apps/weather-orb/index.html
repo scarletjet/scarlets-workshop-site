@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeatherOrb — Scarlet's Workshop</title>
+<meta name="description" content="Glanceable forecast: one orb, today's temperature, and the next five days — no sign-up, no ads.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF6B4A'/><stop offset='1' stop-color='%237A0F22'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%23fff'>SW</text></svg>">
+<style>
+  :root{
+    --bg: #0a0e14; --card: rgba(255,255,255,0.045); --card-border: rgba(255,255,255,0.09);
+    --text: #e8edf4; --muted: #8b95a5;
+    --accent: #f2a13a; --accent-2: #ff7a5c;
+    --orb-a: #f5a623; --orb-b: #ff7043; --orb-ink: #2a1405;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  body{
+    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    background-image: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(242,161,58,0.14), transparent);
+  }
+  .wrap{ max-width: 520px; margin: 0 auto; padding: 48px 20px 80px; }
+  .back{
+    display: inline-block; text-decoration: none; color: var(--muted);
+    font-size: 14px; font-weight: 600; margin-bottom: 32px;
+    padding: 8px 16px; border: 1px solid var(--card-border); border-radius: 999px;
+    transition: all .2s;
+  }
+  .back:hover{ color: var(--accent); border-color: var(--accent); }
+  h1{ font-size: 30px; margin-bottom: 8px; }
+  h1 span{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub{ color: var(--muted); margin-bottom: 24px; }
+
+  .card{ background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 16px; }
+
+  .loc-row{ display: flex; gap: 8px; margin-bottom: 16px; }
+  .loc-row input{
+    flex: 1; font: inherit; font-size: 14px; color: var(--text);
+    background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); border-radius: 10px;
+    padding: 10px 13px; outline: none; min-width: 0;
+  }
+  .loc-row input:focus{ border-color: var(--accent); }
+  .loc-row button{
+    font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+    color: var(--muted); background: transparent; border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 0 14px; transition: all .15s;
+  }
+  .loc-row button:hover{ color: var(--text); border-color: var(--accent); }
+  .suggestions{ display: flex; flex-direction: column; gap: 4px; margin: -8px 0 14px; }
+  .suggestion{
+    text-align: left; font: inherit; font-size: 13px; color: var(--text);
+    background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 8px 12px; cursor: pointer;
+  }
+  .suggestion:hover{ border-color: var(--accent); }
+
+  .orb-wrap{ display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .place{ font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+  .place b{ color: var(--text); }
+  .orb{
+    width: 168px; height: 168px; border-radius: 50%; display: grid; place-items: center;
+    background: radial-gradient(circle at 35% 30%, var(--orb-a), var(--orb-b));
+    box-shadow: 0 0 60px -10px var(--orb-a), inset 0 -10px 30px rgba(0,0,0,0.18);
+    margin-bottom: 16px; transition: background 1s;
+  }
+  .orb-inner{ color: var(--orb-ink); transition: color 1s; }
+  .orb-icon{ font-size: 44px; line-height: 1; }
+  .orb-temp{ font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .condition{ font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .feels{ font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .stat-row{ display: flex; gap: 22px; font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+  .stat-row b{ color: var(--text); font-variant-numeric: tabular-nums; }
+
+  .unit-toggle{ display: flex; gap: 4px; margin-top: 14px; }
+  .unit-btn{
+    font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    color: var(--muted); background: transparent; border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 5px 12px; transition: all .15s;
+  }
+  .unit-btn.active{ color: var(--bg); background: var(--accent); border-color: var(--accent); }
+
+  .days{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .day{ text-align: center; }
+  .day-name{ font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+  .day-icon{ font-size: 22px; margin-bottom: 6px; }
+  .day-hi{ font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .day-lo{ font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .state{ color: var(--muted); font-size: 14px; text-align: center; padding: 20px 0; }
+  .state.bad{ color: #ff8484; }
+  .card h2{ font-size: 12px; margin-bottom: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../">← Back to Scarlet's Workshop</a>
+  <h1><span>WeatherOrb</span></h1>
+  <p class="sub">Glanceable forecast — one look and you know.</p>
+
+  <div class="card">
+    <div class="loc-row">
+      <input id="city-input" type="text" placeholder="Search a city…" autocomplete="off">
+      <button id="locate-btn" type="button" title="Use my location">📍 Here</button>
+    </div>
+    <div class="suggestions" id="suggestions"></div>
+
+    <div id="content">
+      <p class="state" id="state">Finding your weather…</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "weatherorb-place-v1";
+  const UNIT_KEY = "weatherorb-unit-v1";
+  const cityInput = document.getElementById("city-input");
+  const locateBtn = document.getElementById("locate-btn");
+  const suggestionsEl = document.getElementById("suggestions");
+  const contentEl = document.getElementById("content");
+
+  let unit = localStorage.getItem(UNIT_KEY) || "f";
+
+  const WMO = {
+    0:  ["☀️","Clear", "day"], 1: ["🌤️","Mostly clear","day"], 2: ["⛅","Partly cloudy","day"], 3: ["☁️","Overcast","cloud"],
+    45: ["🌫️","Fog","fog"], 48: ["🌫️","Fog","fog"],
+    51: ["🌦️","Drizzle","rain"], 53: ["🌦️","Drizzle","rain"], 55: ["🌦️","Drizzle","rain"],
+    56: ["🌧️","Freezing drizzle","rain"], 57: ["🌧️","Freezing drizzle","rain"],
+    61: ["🌧️","Light rain","rain"], 63: ["🌧️","Rain","rain"], 65: ["🌧️","Heavy rain","rain"],
+    66: ["🌧️","Freezing rain","rain"], 67: ["🌧️","Freezing rain","rain"],
+    71: ["🌨️","Light snow","snow"], 73: ["🌨️","Snow","snow"], 75: ["❄️","Heavy snow","snow"], 77: ["🌨️","Snow grains","snow"],
+    80: ["🌦️","Showers","rain"], 81: ["🌦️","Showers","rain"], 82: ["⛈️","Violent showers","storm"],
+    85: ["🌨️","Snow showers","snow"], 86: ["🌨️","Snow showers","snow"],
+    95: ["⛈️","Thunderstorm","storm"], 96: ["⛈️","Thunderstorm + hail","storm"], 99: ["⛈️","Thunderstorm + hail","storm"],
+  };
+  const THEMES = {
+    day:   { a: "#f5a623", b: "#ff7043", ink: "#2a1405" },
+    night: { a: "#2b2560", b: "#4b3f8f", ink: "#eef0ff" },
+    cloud: { a: "#7a8a98", b: "#4d5c68", ink: "#f4f7f9" },
+    fog:   { a: "#a7aeb4", b: "#7c848b", ink: "#22262a" },
+    rain:  { a: "#4d7fa0", b: "#2e4f68", ink: "#eef6fb" },
+    snow:  { a: "#cfe8f2", b: "#8fb4c9", ink: "#173042" },
+    storm: { a: "#6a4fa0", b: "#3a2360", ink: "#f2ecff" },
+  };
+
+  function applyTheme(key){
+    const t = THEMES[key] || THEMES.day;
+    document.documentElement.style.setProperty("--orb-a", t.a);
+    document.documentElement.style.setProperty("--orb-b", t.b);
+    document.documentElement.style.setProperty("--orb-ink", t.ink);
+  }
+
+  function cToF(c){ return c * 9/5 + 32; }
+  function displayTemp(c){ return Math.round(unit === "f" ? cToF(c) : c) + "°" + unit.toUpperCase(); }
+
+  function setState(msg, bad){
+    contentEl.innerHTML = `<p class="state${bad ? " bad" : ""}">${msg}</p>`;
+  }
+
+  async function geocode(name){
+    const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?count=5&name=" + encodeURIComponent(name));
+    const data = await r.json();
+    return (data && data.results) || [];
+  }
+
+  async function fetchWeather(lat, lon){
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
+      "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day" +
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=6";
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("weather fetch failed");
+    return r.json();
+  }
+
+  function render(place, data){
+    const cur = data.current;
+    const [icon, label, group] = WMO[cur.weather_code] || ["🌡️", "Unknown", "day"];
+    const themeKey = group === "day" && cur.is_day === 0 ? "night" : group;
+    applyTheme(themeKey);
+
+    const days = data.daily.time.slice(1, 6).map((iso, i) => {
+      const idx = i + 1;
+      const [dIcon] = WMO[data.daily.weather_code[idx]] || ["🌡️"];
+      const dayName = new Date(iso + "T12:00:00").toLocaleDateString(undefined, { weekday: "short" });
+      return { dayName, icon: dIcon, hi: data.daily.temperature_2m_max[idx], lo: data.daily.temperature_2m_min[idx] };
+    });
+
+    contentEl.innerHTML = `
+      <div class="orb-wrap">
+        <div class="place">${place.name ? `<b>${place.name}</b>${place.admin ? ", " + place.admin : ""}` : ""}</div>
+        <div class="orb"><div class="orb-inner">
+          <div class="orb-icon">${icon}</div>
+          <div class="orb-temp">${displayTemp(cur.temperature_2m)}</div>
+        </div></div>
+        <div class="condition">${label}</div>
+        <div class="feels">Feels like ${displayTemp(cur.apparent_temperature)}</div>
+        <div class="stat-row">
+          <span>Humidity <b>${Math.round(cur.relative_humidity_2m)}%</b></span>
+          <span>Wind <b>${Math.round(cur.wind_speed_10m)} km/h</b></span>
+        </div>
+        <div class="unit-toggle" id="unit-toggle">
+          <button class="unit-btn${unit==="f"?" active":""}" data-unit="f">°F</button>
+          <button class="unit-btn${unit==="c"?" active":""}" data-unit="c">°C</button>
+        </div>
+      </div>
+      <div style="margin-top:22px">
+        <h2>Next 5 days</h2>
+        <div class="days">
+          ${days.map(d => `<div class="day">
+            <div class="day-name">${d.dayName}</div>
+            <div class="day-icon">${d.icon}</div>
+            <div class="day-hi">${displayTemp(d.hi)}</div>
+            <div class="day-lo">${displayTemp(d.lo)}</div>
+          </div>`).join("")}
+        </div>
+      </div>`;
+
+    document.getElementById("unit-toggle").addEventListener("click", e => {
+      const btn = e.target.closest(".unit-btn");
+      if (!btn) return;
+      unit = btn.dataset.unit;
+      localStorage.setItem(UNIT_KEY, unit);
+      render(place, data);
+    });
+  }
+
+  async function loadPlace(place){
+    setState("Loading forecast for " + place.name + "…");
+    try {
+      const data = await fetchWeather(place.lat, place.lon);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(place)); } catch(e){}
+      render(place, data);
+    } catch(e){
+      setState("Couldn't load the forecast. Try again in a moment.", true);
+    }
+  }
+
+  cityInput.addEventListener("input", async () => {
+    const q = cityInput.value.trim();
+    if (q.length < 2) { suggestionsEl.innerHTML = ""; return; }
+    try {
+      const results = await geocode(q);
+      suggestionsEl.innerHTML = results.map(r => `
+        <button class="suggestion" data-lat="${r.latitude}" data-lon="${r.longitude}" data-name="${r.name}" data-admin="${r.admin1 || ""}">
+          ${r.name}${r.admin1 ? ", " + r.admin1 : ""}${r.country ? ", " + r.country : ""}
+        </button>`).join("");
+    } catch(e){ /* ignore transient errors */ }
+  });
+
+  suggestionsEl.addEventListener("click", e => {
+    const btn = e.target.closest(".suggestion");
+    if (!btn) return;
+    suggestionsEl.innerHTML = "";
+    cityInput.value = "";
+    loadPlace({ lat: btn.dataset.lat, lon: btn.dataset.lon, name: btn.dataset.name, admin: btn.dataset.admin });
+  });
+
+  locateBtn.addEventListener("click", () => {
+    if (!navigator.geolocation) { setState("Location isn't available in this browser — search a city instead.", true); return; }
+    setState("Finding your weather…");
+    navigator.geolocation.getCurrentPosition(
+      pos => loadPlace({ lat: pos.coords.latitude, lon: pos.coords.longitude, name: "Your location", admin: "" }),
+      () => setState("Location wasn't shared — search for your city above.", true),
+      { timeout: 8000 }
+    );
+  });
+
+  // boot: try last saved place, else geolocation, else prompt
+  (function boot(){
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch(e){}
+    if (saved) { loadPlace(saved); return; }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => loadPlace({ lat: pos.coords.latitude, lon: pos.coords.longitude, name: "Your location", admin: "" }),
+        () => setState("Search a city above to see its forecast."),
+        { timeout: 8000 }
+      );
+    } else {
+      setState("Search a city above to see its forecast.");
+    }
+  })();
+})();
+</script>
+</body>
+</html>

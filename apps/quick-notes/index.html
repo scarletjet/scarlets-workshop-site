@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickNotes — Scarlet's Workshop</title>
+<meta name="description" content="Notes that sync: jot something down, then copy a sync link to pick it up on another device — no account, no server.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF6B4A'/><stop offset='1' stop-color='%237A0F22'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%23fff'>SW</text></svg>">
+<style>
+  :root{
+    --bg: #0a0e14; --card: rgba(255,255,255,0.045); --card-border: rgba(255,255,255,0.09);
+    --text: #e8edf4; --muted: #8b95a5;
+    --accent: #d9a441; --accent-2: #f4c96b;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  body{
+    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    background-image: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(217,164,65,0.14), transparent);
+  }
+  .wrap{ max-width: 860px; margin: 0 auto; padding: 48px 20px 80px; }
+  .back{
+    display: inline-block; text-decoration: none; color: var(--muted);
+    font-size: 14px; font-weight: 600; margin-bottom: 32px;
+    padding: 8px 16px; border: 1px solid var(--card-border); border-radius: 999px;
+    transition: all .2s;
+  }
+  .back:hover{ color: var(--accent); border-color: var(--accent); }
+  h1{ font-size: 30px; margin-bottom: 8px; }
+  h1 span{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub{ color: var(--muted); margin-bottom: 24px; }
+
+  .app{
+    display: grid; grid-template-columns: 220px 1fr; gap: 14px;
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 14px; min-height: 420px;
+  }
+  @media (max-width: 640px){ .app{ grid-template-columns: 1fr; } }
+
+  .sidebar{ display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .new-btn{
+    font: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
+    color: #241705; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none; border-radius: 10px; padding: 10px; transition: filter .15s;
+  }
+  .new-btn:hover{ filter: brightness(1.06); }
+  .note-list{ list-style: none; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 360px; }
+  .note-item{
+    display: flex; align-items: center; gap: 6px; border-radius: 8px; cursor: pointer;
+    padding: 9px 10px; font-size: 13.5px; color: var(--muted); transition: background .12s;
+  }
+  .note-item:hover{ background: rgba(255,255,255,0.04); }
+  .note-item.active{ background: rgba(217,164,65,0.14); color: var(--text); }
+  .note-title{ flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .note-del{ background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px; opacity: 0; transition: opacity .12s; }
+  .note-item:hover .note-del{ opacity: 1; }
+  .note-del:hover{ color: #ff8484; }
+  .empty-list{ color: var(--muted); font-size: 12.5px; padding: 10px; }
+
+  .editor{ display: flex; flex-direction: column; min-width: 0; }
+  .editor textarea{
+    flex: 1; min-height: 320px; resize: vertical; font: inherit; font-size: 14.5px; color: var(--text);
+    background: transparent; border: none; outline: none; line-height: 1.7;
+  }
+  .editor-empty{ color: var(--muted); font-size: 14px; padding: 20px; text-align: center; }
+
+  .toolbar{ display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+  .tool-btn{
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    color: var(--muted); background: transparent; border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 8px 14px; transition: all .15s;
+  }
+  .tool-btn:hover{ color: var(--text); border-color: var(--accent); }
+  .save-note{ font-size: 12px; color: var(--muted); margin-left: auto; }
+  .save-note.saved{ color: var(--accent); }
+  .note{ font-size: 12px; color: var(--muted); margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../">← Back to Scarlet's Workshop</a>
+  <h1><span>QuickNotes</span></h1>
+  <p class="sub">Notes that sync — no account, just a link.</p>
+
+  <div class="app">
+    <div class="sidebar">
+      <button class="new-btn" id="new-btn" type="button">+ New note</button>
+      <ul class="note-list" id="note-list"></ul>
+    </div>
+    <div class="editor" id="editor">
+      <p class="editor-empty" id="editor-empty">Select a note, or create one.</p>
+      <textarea id="textarea" placeholder="Start typing…" hidden></textarea>
+      <div class="toolbar">
+        <button class="tool-btn" id="sync-btn" type="button">Copy sync link</button>
+        <button class="tool-btn" id="export-btn" type="button">Export as text</button>
+        <span class="save-note" id="save-status"></span>
+      </div>
+    </div>
+  </div>
+  <p class="note">"Sync" works by encoding your notes into the link itself — copy it, open it on another device, and choose to load it there. Nothing is sent to a server.</p>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "quicknotes-notes-v1";
+  const listEl = document.getElementById("note-list");
+  const newBtn = document.getElementById("new-btn");
+  const textarea = document.getElementById("textarea");
+  const editorEmpty = document.getElementById("editor-empty");
+  const syncBtn = document.getElementById("sync-btn");
+  const exportBtn = document.getElementById("export-btn");
+  const saveStatus = document.getElementById("save-status");
+
+  let notes = load();
+  let activeId = notes.length ? notes[0].id : null;
+  let saveTimer = null;
+
+  function load(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    catch(e){ return []; }
+  }
+  function persist(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(notes)); } catch(e){}
+  }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  function titleOf(note){
+    const firstLine = (note.text || "").split("\n")[0].trim();
+    return firstLine || "Untitled note";
+  }
+
+  function renderList(){
+    if (!notes.length) {
+      listEl.innerHTML = '<li class="empty-list">No notes yet.</li>';
+      return;
+    }
+    listEl.innerHTML = notes.map(n => `
+      <li class="note-item${n.id === activeId ? " active" : ""}" data-id="${n.id}">
+        <span class="note-title">${esc(titleOf(n))}</span>
+        <button class="note-del" data-id="${n.id}" aria-label="Delete note">×</button>
+      </li>`).join("");
+  }
+
+  function renderEditor(){
+    const note = notes.find(n => n.id === activeId);
+    if (!note) {
+      editorEmpty.hidden = false;
+      textarea.hidden = true;
+      return;
+    }
+    editorEmpty.hidden = true;
+    textarea.hidden = false;
+    textarea.value = note.text || "";
+  }
+
+  function render(){ renderList(); renderEditor(); }
+
+  newBtn.addEventListener("click", () => {
+    const note = { id: uid(), text: "" };
+    notes.unshift(note);
+    activeId = note.id;
+    persist(); render();
+    textarea.focus();
+  });
+
+  listEl.addEventListener("click", e => {
+    const del = e.target.closest(".note-del");
+    if (del) {
+      const id = del.dataset.id;
+      notes = notes.filter(n => n.id !== id);
+      if (activeId === id) activeId = notes.length ? notes[0].id : null;
+      persist(); render();
+      return;
+    }
+    const item = e.target.closest(".note-item");
+    if (item) { activeId = item.dataset.id; render(); }
+  });
+
+  textarea.addEventListener("input", () => {
+    const note = notes.find(n => n.id === activeId);
+    if (!note) return;
+    note.text = textarea.value;
+    renderList();
+    saveStatus.textContent = "Saving…";
+    saveStatus.classList.remove("saved");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      persist();
+      saveStatus.textContent = "Saved";
+      saveStatus.classList.add("saved");
+    }, 400);
+  });
+
+  exportBtn.addEventListener("click", () => {
+    const note = notes.find(n => n.id === activeId);
+    if (!note) return;
+    const blob = new Blob([note.text || ""], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = titleOf(note).slice(0, 40).replace(/[^\w\- ]/g, "").trim() + ".txt";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  function encodeNotes(list){
+    const json = JSON.stringify(list);
+    return btoa(encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, h) => String.fromCharCode("0x" + h)));
+  }
+  function decodeNotes(b64){
+    const json = decodeURIComponent(Array.prototype.map.call(atob(b64), c =>
+      "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+    return JSON.parse(json);
+  }
+
+  syncBtn.addEventListener("click", async () => {
+    const encoded = encodeNotes(notes);
+    const url = location.origin + location.pathname + "#sync=" + encoded;
+    try {
+      await navigator.clipboard.writeText(url);
+      syncBtn.textContent = "Link copied!";
+    } catch(e) {
+      prompt("Copy this sync link:", url);
+    }
+    setTimeout(() => { syncBtn.textContent = "Copy sync link"; }, 1600);
+  });
+
+  function checkIncomingSync(){
+    const m = location.hash.match(/sync=([^&]+)/);
+    if (!m) return;
+    try {
+      const incoming = decodeNotes(m[1]);
+      if (!Array.isArray(incoming) || !incoming.length) return;
+      const replace = confirm(
+        incoming.length + " note(s) found in this link.\n\nOK = replace your current notes with these\nCancel = add them alongside your current notes"
+      );
+      if (replace) {
+        notes = incoming;
+      } else {
+        notes = incoming.concat(notes);
+      }
+      activeId = notes.length ? notes[0].id : null;
+      persist();
+      history.replaceState(null, "", location.pathname);
+    } catch(e){ /* malformed link, ignore */ }
+  }
+
+  checkIncomingSync();
+  render();
+})();
+</script>
+</body>
+</html>
