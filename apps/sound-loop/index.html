@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundLoop — Scarlet's Workshop</title>
+<meta name="description" content="Ambient mixer: blend rain, wind, waves, a soft drone, and firelight crackle — all synthesized live in your browser, no audio files.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF6B4A'/><stop offset='1' stop-color='%237A0F22'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%23fff'>SW</text></svg>">
+<style>
+  :root{
+    --bg: #0a0e14; --card: rgba(255,255,255,0.045); --card-border: rgba(255,255,255,0.09);
+    --text: #e8edf4; --muted: #8b95a5;
+    --accent: #9a4fb0; --accent-2: #d9a0da;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  body{
+    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    background-image: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(154,79,176,0.16), transparent);
+  }
+  .wrap{ max-width: 560px; margin: 0 auto; padding: 48px 20px 80px; }
+  .back{
+    display: inline-block; text-decoration: none; color: var(--muted);
+    font-size: 14px; font-weight: 600; margin-bottom: 32px;
+    padding: 8px 16px; border: 1px solid var(--card-border); border-radius: 999px;
+    transition: all .2s;
+  }
+  .back:hover{ color: var(--accent-2); border-color: var(--accent-2); }
+  h1{ font-size: 30px; margin-bottom: 8px; }
+  h1 span{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub{ color: var(--muted); margin-bottom: 24px; }
+
+  .transport{ display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .play-btn{
+    width: 56px; height: 56px; border-radius: 50%; flex: 0 0 auto; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none;
+    color: #1c0a20; font-size: 20px; display: grid; place-items: center; transition: transform .15s, filter .15s;
+  }
+  .play-btn:hover{ filter: brightness(1.08); }
+  .play-btn:active{ transform: scale(.96); }
+  .transport-label{ font-size: 13.5px; color: var(--muted); }
+  .transport-label b{ color: var(--text); }
+
+  .presets{ display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .preset-btn{
+    font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+    color: var(--muted); background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 999px; padding: 7px 14px; transition: all .15s;
+  }
+  .preset-btn:hover{ color: var(--text); border-color: var(--accent-2); }
+
+  .layers{ display: flex; flex-direction: column; gap: 14px; }
+  .layer{
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 14px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+  }
+  .layer-icon{ font-size: 22px; flex: 0 0 auto; width: 28px; text-align: center; }
+  .layer-name{ font-size: 13.5px; font-weight: 600; flex: 0 0 88px; }
+  .layer-slider{ flex: 1; accent-color: var(--accent-2); }
+  .layer-pct{ font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; width: 34px; text-align: right; }
+
+  .note{ font-size: 12px; color: var(--muted); margin-top: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../">← Back to Scarlet's Workshop</a>
+  <h1><span>SoundLoop</span></h1>
+  <p class="sub">Ambient mixer — blend your own weather.</p>
+
+  <div class="transport">
+    <button class="play-btn" id="play-btn" aria-label="Play">▶</button>
+    <span class="transport-label" id="transport-label">Press play, then raise a slider.</span>
+  </div>
+
+  <div class="presets" id="presets">
+    <button class="preset-btn" data-preset="rainyNight">Rainy night</button>
+    <button class="preset-btn" data-preset="campfire">Campfire</button>
+    <button class="preset-btn" data-preset="ocean">Ocean</button>
+    <button class="preset-btn" data-preset="silence">Silence</button>
+  </div>
+
+  <div class="layers" id="layers">
+    <div class="layer" data-layer="rain">
+      <span class="layer-icon">🌧️</span><span class="layer-name">Rain</span>
+      <input class="layer-slider" type="range" min="0" max="100" value="25">
+      <span class="layer-pct">25%</span>
+    </div>
+    <div class="layer" data-layer="wind">
+      <span class="layer-icon">💨</span><span class="layer-name">Wind</span>
+      <input class="layer-slider" type="range" min="0" max="100" value="0">
+      <span class="layer-pct">0%</span>
+    </div>
+    <div class="layer" data-layer="waves">
+      <span class="layer-icon">🌊</span><span class="layer-name">Waves</span>
+      <input class="layer-slider" type="range" min="0" max="100" value="0">
+      <span class="layer-pct">0%</span>
+    </div>
+    <div class="layer" data-layer="drone">
+      <span class="layer-icon">🎵</span><span class="layer-name">Soft drone</span>
+      <input class="layer-slider" type="range" min="0" max="100" value="15">
+      <span class="layer-pct">15%</span>
+    </div>
+    <div class="layer" data-layer="fire">
+      <span class="layer-icon">🔥</span><span class="layer-name">Firelight</span>
+      <input class="layer-slider" type="range" min="0" max="100" value="0">
+      <span class="layer-pct">0%</span>
+    </div>
+  </div>
+
+  <p class="note">Every sound here is synthesized live with the Web Audio API — nothing is streamed or downloaded.</p>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "soundloop-levels-v1";
+  const playBtn = document.getElementById("play-btn");
+  const transportLabel = document.getElementById("transport-label");
+  const layersEl = document.getElementById("layers");
+  const presetsEl = document.getElementById("presets");
+
+  const PRESETS = {
+    rainyNight: { rain: 60, wind: 20, waves: 0,  drone: 18, fire: 0 },
+    campfire:   { rain: 0,  wind: 12, waves: 0,  drone: 8,  fire: 55 },
+    ocean:      { rain: 0,  wind: 15, waves: 60, drone: 10, fire: 0 },
+    silence:    { rain: 0,  wind: 0,  waves: 0,  drone: 0,  fire: 0 },
+  };
+
+  let levels = load();
+  let ctx = null, master = null, nodes = {}, playing = false, fireTimer = null;
+
+  function load(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (saved) return saved;
+    } catch(e){}
+    return { rain: 25, wind: 0, waves: 0, drone: 15, fire: 0 };
+  }
+  function persist(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(levels)); } catch(e){} }
+
+  function applySlidersFromLevels(){
+    Object.keys(levels).forEach(key => {
+      const layer = layersEl.querySelector(`[data-layer="${key}"]`);
+      if (!layer) return;
+      layer.querySelector(".layer-slider").value = levels[key];
+      layer.querySelector(".layer-pct").textContent = levels[key] + "%";
+      if (nodes[key]) setLayerGain(key, levels[key]);
+    });
+  }
+
+  function makeNoiseBuffer(context, seconds){
+    const buffer = context.createBuffer(1, context.sampleRate * seconds, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    return buffer;
+  }
+
+  function buildAudio(){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain();
+    master.gain.value = 0.9;
+    master.connect(ctx.destination);
+
+    const noiseBuffer = makeNoiseBuffer(ctx, 4);
+
+    function noiseSource(){
+      const src = ctx.createBufferSource();
+      src.buffer = noiseBuffer;
+      src.loop = true;
+      return src;
+    }
+    function lfo(freq, min, max, target){
+      const osc = ctx.createOscillator();
+      osc.frequency.value = freq;
+      const depth = ctx.createGain();
+      depth.gain.value = (max - min) / 2;
+      osc.connect(depth);
+      depth.connect(target);
+      osc.start();
+      return osc;
+    }
+
+    // --- Rain: bandpass-filtered noise ---
+    {
+      const src = noiseSource();
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass"; filter.frequency.value = 2800; filter.Q.value = 0.6;
+      const gain = ctx.createGain(); gain.gain.value = 0;
+      src.connect(filter); filter.connect(gain); gain.connect(master);
+      src.start();
+      nodes.rain = { gain };
+    }
+
+    // --- Wind: lowpass noise with slowly modulated cutoff ---
+    {
+      const src = noiseSource();
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass"; filter.frequency.value = 600; filter.Q.value = 0.5;
+      const gain = ctx.createGain(); gain.gain.value = 0;
+      src.connect(filter); filter.connect(gain); gain.connect(master);
+      src.start();
+      lfo(0.08, 250, 950, filter.frequency);
+      nodes.wind = { gain };
+    }
+
+    // --- Waves: lowpass noise with slow amplitude swell ---
+    {
+      const src = noiseSource();
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass"; filter.frequency.value = 450; filter.Q.value = 0.4;
+      const swell = ctx.createGain(); swell.gain.value = 0.6;
+      const gain = ctx.createGain(); gain.gain.value = 0;
+      src.connect(filter); filter.connect(swell); swell.connect(gain); gain.connect(master);
+      src.start();
+      lfo(0.07, 0.25, 0.95, swell.gain);
+      nodes.waves = { gain };
+    }
+
+    // --- Drone: three soft detuned oscillators ---
+    {
+      const gain = ctx.createGain(); gain.gain.value = 0;
+      const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      const dest = pan || gain;
+      if (pan) { gain.connect(pan); pan.connect(master); lfo(0.03, -0.6, 0.6, pan.pan); }
+      else { gain.connect(master); }
+      [110, 165, 220].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        osc.detune.value = (i - 1) * 6;
+        const oscGain = ctx.createGain(); oscGain.gain.value = i === 0 ? 0.5 : 0.28;
+        osc.connect(oscGain); oscGain.connect(gain);
+        osc.start();
+      });
+      nodes.drone = { gain };
+    }
+
+    // --- Fire: scheduled random noise crackles ---
+    {
+      const gain = ctx.createGain(); gain.gain.value = 0;
+      gain.connect(master);
+      nodes.fire = { gain };
+      scheduleFire();
+    }
+
+    function scheduleFire(){
+      const pop = () => {
+        if (!ctx) return;
+        const src = ctx.createBufferSource();
+        src.buffer = noiseBuffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = "highpass"; filter.frequency.value = 1800 + Math.random() * 2200;
+        const env = ctx.createGain();
+        const now = ctx.currentTime;
+        const peak = 0.5 + Math.random() * 0.5;
+        env.gain.setValueAtTime(0, now);
+        env.gain.linearRampToValueAtTime(peak, now + 0.004);
+        env.gain.exponentialRampToValueAtTime(0.001, now + 0.03 + Math.random() * 0.05);
+        src.connect(filter); filter.connect(env); env.connect(nodes.fire.gain);
+        src.start(now); src.stop(now + 0.12);
+        fireTimer = setTimeout(pop, 90 + Math.random() * 260);
+      };
+      pop();
+    }
+  }
+
+  function setLayerGain(key, pct){
+    if (!nodes[key] || !ctx) return;
+    const target = Math.pow(pct / 100, 1.5); // gentle curve, quiet at low end
+    nodes[key].gain.gain.setTargetAtTime(target, ctx.currentTime, 0.15);
+  }
+
+  function ensureAudio(){
+    if (!ctx) { buildAudio(); applySlidersFromLevels(); }
+  }
+
+  playBtn.addEventListener("click", () => {
+    ensureAudio();
+    if (playing) {
+      ctx.suspend();
+      playing = false;
+      playBtn.textContent = "▶";
+      playBtn.setAttribute("aria-label", "Play");
+      transportLabel.textContent = "Paused.";
+    } else {
+      ctx.resume();
+      playing = true;
+      playBtn.textContent = "❚❚";
+      playBtn.setAttribute("aria-label", "Pause");
+      transportLabel.textContent = "Playing — mix the layers below.";
+    }
+  });
+
+  layersEl.addEventListener("input", e => {
+    const slider = e.target.closest(".layer-slider");
+    if (!slider) return;
+    const layer = slider.closest(".layer");
+    const key = layer.dataset.layer;
+    const pct = Number(slider.value);
+    levels[key] = pct;
+    layer.querySelector(".layer-pct").textContent = pct + "%";
+    ensureAudio();
+    setLayerGain(key, pct);
+    persist();
+  });
+
+  presetsEl.addEventListener("click", e => {
+    const btn = e.target.closest(".preset-btn");
+    if (!btn) return;
+    levels = { ...PRESETS[btn.dataset.preset] };
+    applySlidersFromLevels();
+    persist();
+  });
+
+  applySlidersFromLevels();
+})();
+</script>
+</body>
+</html>

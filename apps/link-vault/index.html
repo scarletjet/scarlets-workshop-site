@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkVault — Scarlet's Workshop</title>
+<meta name="description" content="Save your links: drop in a URL, tag it, and find it again with search — all stored right in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF6B4A'/><stop offset='1' stop-color='%237A0F22'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%23fff'>SW</text></svg>">
+<style>
+  :root{
+    --bg: #0a0e14; --card: rgba(255,255,255,0.045); --card-border: rgba(255,255,255,0.09);
+    --text: #e8edf4; --muted: #8b95a5;
+    --accent: #2f9298; --accent-2: #7fd1d4;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  body{
+    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    background-image: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(47,146,152,0.16), transparent);
+  }
+  .wrap{ max-width: 640px; margin: 0 auto; padding: 48px 20px 80px; }
+  .back{
+    display: inline-block; text-decoration: none; color: var(--muted);
+    font-size: 14px; font-weight: 600; margin-bottom: 32px;
+    padding: 8px 16px; border: 1px solid var(--card-border); border-radius: 999px;
+    transition: all .2s;
+  }
+  .back:hover{ color: var(--accent-2); border-color: var(--accent-2); }
+  h1{ font-size: 30px; margin-bottom: 8px; }
+  h1 span{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub{ color: var(--muted); margin-bottom: 24px; }
+
+  .card{ background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+
+  .field-row{ display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .field-row input{
+    font: inherit; font-size: 14px; color: var(--text);
+    background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); border-radius: 10px;
+    padding: 11px 13px; outline: none; transition: border-color .15s; min-width: 0;
+  }
+  .field-row input:focus{ border-color: var(--accent); }
+  #url-input{ flex: 1 1 200px; }
+  #title-input{ flex: 1 1 140px; }
+  #tag-input{ flex: 0 1 120px; }
+
+  .add-submit{
+    width: 100%; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer;
+    color: #06231a; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none; border-radius: 10px; padding: 12px; transition: filter .15s;
+  }
+  .add-submit:hover{ filter: brightness(1.1); }
+
+  .toolbar-row{ display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  #search{
+    flex: 1; font: inherit; font-size: 14px; color: var(--text);
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 10px;
+    padding: 10px 13px; outline: none; min-width: 160px;
+  }
+  #search:focus{ border-color: var(--accent); }
+  .tag-chips{ display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag-chip{
+    font-size: 11.5px; font-weight: 600; color: var(--muted); background: var(--card);
+    border: 1px solid var(--card-border); border-radius: 999px; padding: 5px 11px; cursor: pointer;
+    transition: all .15s;
+  }
+  .tag-chip.active{ color: var(--bg); background: var(--accent-2); border-color: var(--accent-2); }
+
+  .link-list{ list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .link-item{
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .favicon{ width: 22px; height: 22px; border-radius: 5px; flex: 0 0 auto; background: rgba(255,255,255,0.06); }
+  .link-body{ flex: 1; min-width: 0; }
+  .link-title{
+    font-size: 14px; font-weight: 600; text-decoration: none; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+  }
+  .link-title:hover{ color: var(--accent-2); }
+  .link-meta{ font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .link-tags{ display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
+  .link-tag{ font-size: 10.5px; color: var(--accent-2); background: rgba(127,209,212,0.1); border-radius: 6px; padding: 1px 6px; }
+  .link-actions{ display: flex; gap: 4px; flex: 0 0 auto; }
+  .link-actions button{
+    background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px 6px; transition: color .15s;
+  }
+  .link-actions button:hover{ color: var(--accent-2); }
+  .link-actions .del-btn:hover{ color: #ff8484; }
+  .empty{ color: var(--muted); font-size: 13.5px; text-align: center; padding: 24px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../">← Back to Scarlet's Workshop</a>
+  <h1><span>LinkVault</span></h1>
+  <p class="sub">Save your links, tag them, find them again.</p>
+
+  <div class="card">
+    <form id="add-form">
+      <div class="field-row">
+        <input id="url-input" type="text" placeholder="Paste a URL…" required>
+        <input id="title-input" type="text" placeholder="Title (optional)" maxlength="80">
+        <input id="tag-input" type="text" placeholder="Tag (optional)" maxlength="20">
+      </div>
+      <button class="add-submit" type="submit">Save link</button>
+    </form>
+  </div>
+
+  <div class="toolbar-row">
+    <input id="search" type="search" placeholder="Search your links…">
+  </div>
+  <div class="toolbar-row tag-chips" id="tag-chips"></div>
+
+  <ul class="link-list" id="link-list"></ul>
+  <p class="empty" id="empty" hidden>Nothing saved yet — paste a link above.</p>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "linkvault-links-v1";
+  const form = document.getElementById("add-form");
+  const urlInput = document.getElementById("url-input");
+  const titleInput = document.getElementById("title-input");
+  const tagInput = document.getElementById("tag-input");
+  const search = document.getElementById("search");
+  const tagChipsEl = document.getElementById("tag-chips");
+  const listEl = document.getElementById("link-list");
+  const emptyEl = document.getElementById("empty");
+
+  let links = load();
+  let query = "";
+  let activeTag = null;
+
+  function load(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    catch(e){ return []; }
+  }
+  function persist(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(links)); } catch(e){} }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  function normalizeUrl(raw){
+    let u = raw.trim();
+    if (!u) return null;
+    if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+    try { return new URL(u).href; } catch(e) { return null; }
+  }
+  function hostOf(url){
+    try { return new URL(url).hostname.replace(/^www\./, ""); } catch(e) { return url; }
+  }
+  function faviconOf(url){
+    return "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(hostOf(url)) + "&sz=64";
+  }
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const url = normalizeUrl(urlInput.value);
+    if (!url) { urlInput.focus(); return; }
+    const tag = tagInput.value.trim();
+    links.unshift({
+      id: uid(), url, title: titleInput.value.trim() || hostOf(url),
+      tags: tag ? [tag] : [], added: Date.now(),
+    });
+    urlInput.value = ""; titleInput.value = ""; tagInput.value = "";
+    persist(); render();
+    urlInput.focus();
+  });
+
+  search.addEventListener("input", () => { query = search.value.toLowerCase(); render(); });
+
+  tagChipsEl.addEventListener("click", e => {
+    const chip = e.target.closest(".tag-chip");
+    if (!chip) return;
+    activeTag = (activeTag === chip.dataset.tag) ? null : chip.dataset.tag;
+    render();
+  });
+
+  listEl.addEventListener("click", e => {
+    const id = e.target.closest("[data-id]")?.dataset.id;
+    if (!id) return;
+    if (e.target.closest(".del-btn")) {
+      links = links.filter(l => l.id !== id);
+      persist(); render();
+    } else if (e.target.closest(".copy-btn")) {
+      const link = links.find(l => l.id === id);
+      if (link) navigator.clipboard?.writeText(link.url).catch(()=>{});
+    }
+  });
+
+  function render(){
+    const allTags = [...new Set(links.flatMap(l => l.tags))];
+    tagChipsEl.innerHTML = allTags.map(t =>
+      `<button class="tag-chip${t === activeTag ? " active" : ""}" data-tag="${esc(t)}">${esc(t)}</button>`).join("");
+
+    let filtered = links;
+    if (activeTag) filtered = filtered.filter(l => l.tags.includes(activeTag));
+    if (query) filtered = filtered.filter(l =>
+      l.title.toLowerCase().includes(query) || l.url.toLowerCase().includes(query) ||
+      l.tags.some(t => t.toLowerCase().includes(query)));
+
+    emptyEl.hidden = filtered.length > 0;
+    listEl.innerHTML = filtered.map(l => `
+      <li class="link-item" data-id="${l.id}">
+        <img class="favicon" src="${faviconOf(l.url)}" alt="" width="22" height="22" loading="lazy">
+        <span class="link-body">
+          <a class="link-title" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)}</a>
+          <span class="link-meta">${esc(hostOf(l.url))}</span>
+          ${l.tags.length ? `<span class="link-tags">${l.tags.map(t=>`<span class="link-tag">${esc(t)}</span>`).join("")}</span>` : ""}
+        </span>
+        <span class="link-actions" data-id="${l.id}">
+          <button class="copy-btn" title="Copy link">⧉</button>
+          <button class="del-btn" title="Delete">×</button>
+        </span>
+      </li>`).join("");
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

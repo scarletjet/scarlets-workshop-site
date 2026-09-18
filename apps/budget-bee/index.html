@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BudgetBee — Scarlet's Workshop</title>
+<meta name="description" content="Money tracker: log what comes in and what goes out, and watch your balance and spending categories add up.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF6B4A'/><stop offset='1' stop-color='%237A0F22'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%23fff'>SW</text></svg>">
+<style>
+  :root{
+    --bg: #0a0e14; --card: rgba(255,255,255,0.045); --card-border: rgba(255,255,255,0.09);
+    --text: #e8edf4; --muted: #8b95a5;
+    --accent: #e8a93a; --accent-2: #2a2411;
+    --good: #46d38a; --bad: #ff6b6b;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  body{
+    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    background-image: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(232,169,58,0.14), transparent);
+  }
+  .wrap{ max-width: 640px; margin: 0 auto; padding: 48px 20px 80px; }
+  .back{
+    display: inline-block; text-decoration: none; color: var(--muted);
+    font-size: 14px; font-weight: 600; margin-bottom: 32px;
+    padding: 8px 16px; border: 1px solid var(--card-border); border-radius: 999px;
+    transition: all .2s;
+  }
+  .back:hover{ color: var(--accent); border-color: var(--accent); }
+  h1{ font-size: 30px; margin-bottom: 8px; }
+  h1 span{ background: linear-gradient(90deg, var(--accent), #ffd27a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub{ color: var(--muted); margin-bottom: 26px; }
+
+  .card{ background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; margin-bottom: 16px; }
+
+  .balance-card{ text-align: center; }
+  .balance-label{ font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .balance-value{ font-size: 42px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 4px 0 14px; }
+  .balance-value.neg{ color: var(--bad); }
+  .balance-value.pos{ color: var(--good); }
+  .month-row{ display: flex; justify-content: center; gap: 26px; font-size: 13px; color: var(--muted); }
+  .month-row b{ font-variant-numeric: tabular-nums; }
+  .month-row .in b{ color: var(--good); }
+  .month-row .out b{ color: var(--bad); }
+
+  .type-toggle{ display: flex; gap: 6px; margin-bottom: 14px; }
+  .type-btn{
+    flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--card-border);
+    background: transparent; color: var(--muted); font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+  }
+  .type-btn[data-type="expense"].active{ color: #fff; background: var(--bad); border-color: var(--bad); }
+  .type-btn[data-type="income"].active{ color: #06231a; background: var(--good); border-color: var(--good); }
+
+  .field-row{ display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .field-row input, .field-row select{
+    font: inherit; font-size: 14px; color: var(--text);
+    background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); border-radius: 10px;
+    padding: 11px 13px; outline: none; transition: border-color .15s;
+  }
+  .field-row input:focus, .field-row select:focus{ border-color: var(--accent); }
+  #desc{ flex: 1 1 160px; min-width: 0; }
+  #amount{ flex: 0 0 110px; }
+  #category{ flex: 1 1 140px; }
+
+  .add-submit{
+    width: 100%; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer;
+    color: #241705; background: linear-gradient(135deg, var(--accent), #ffd27a);
+    border: none; border-radius: 10px; padding: 12px; transition: filter .15s;
+  }
+  .add-submit:hover{ filter: brightness(1.06); }
+
+  .tx-list{ list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .tx{
+    display: flex; align-items: center; gap: 12px; padding: 11px 4px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .tx:last-child{ border-bottom: none; }
+  .tx-dot{ width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+  .tx-dot.income{ background: var(--good); }
+  .tx-dot.expense{ background: var(--bad); }
+  .tx-body{ flex: 1; min-width: 0; }
+  .tx-desc{ font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-meta{ font-size: 11.5px; color: var(--muted); }
+  .tx-amount{ font-variant-numeric: tabular-nums; font-weight: 700; font-size: 14px; }
+  .tx-amount.income{ color: var(--good); }
+  .tx-amount.expense{ color: var(--bad); }
+  .tx-del{ background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 2px 4px; }
+  .tx-del:hover{ color: #ff8484; }
+  .empty{ color: var(--muted); font-size: 13.5px; text-align: center; padding: 16px 0; }
+
+  .bd-row{ display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12.5px; }
+  .bd-row:last-child{ margin-bottom: 0; }
+  .bd-name{ width: 84px; flex: 0 0 auto; color: var(--muted); }
+  .bd-track{ flex: 1; height: 8px; border-radius: 99px; background: rgba(255,255,255,0.06); overflow: hidden; }
+  .bd-fill{ height: 100%; background: linear-gradient(90deg, var(--accent), #ffd27a); border-radius: 99px; }
+  .bd-pct{ width: 40px; flex: 0 0 auto; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .card h2{ font-size: 13px; margin-bottom: 14px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../">← Back to Scarlet's Workshop</a>
+  <h1><span>BudgetBee</span></h1>
+  <p class="sub">Money tracker. Log it, and watch it add up.</p>
+
+  <div class="card balance-card">
+    <div class="balance-label">Balance</div>
+    <div class="balance-value" id="balance">$0.00</div>
+    <div class="month-row">
+      <span class="in">In this month <b id="month-in">$0.00</b></span>
+      <span class="out">Out this month <b id="month-out">$0.00</b></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Add transaction</h2>
+    <div class="type-toggle">
+      <button class="type-btn" data-type="expense">Expense</button>
+      <button class="type-btn" data-type="income">Income</button>
+    </div>
+    <form id="add-form">
+      <div class="field-row">
+        <input id="desc" type="text" placeholder="What was it?" maxlength="60" required>
+        <input id="amount" type="number" placeholder="0.00" min="0.01" step="0.01" required>
+        <select id="category"></select>
+      </div>
+      <button class="add-submit" type="submit">Add</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Where it's going</h2>
+    <div id="breakdown"></div>
+    <p class="empty" id="breakdown-empty" hidden>Log an expense to see the breakdown.</p>
+  </div>
+
+  <div class="card">
+    <h2>Transactions</h2>
+    <ul class="tx-list" id="tx-list"></ul>
+    <p class="empty" id="tx-empty" hidden>No transactions yet.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "budgetbee-tx-v1";
+  const CATEGORIES = {
+    expense: ["Food", "Transport", "Bills", "Fun", "Shopping", "Other"],
+    income: ["Salary", "Freelance", "Gift", "Other"],
+  };
+
+  const balanceEl = document.getElementById("balance");
+  const monthInEl = document.getElementById("month-in");
+  const monthOutEl = document.getElementById("month-out");
+  const typeToggle = document.querySelectorAll(".type-btn");
+  const categorySel = document.getElementById("category");
+  const form = document.getElementById("add-form");
+  const descInput = document.getElementById("desc");
+  const amountInput = document.getElementById("amount");
+  const txList = document.getElementById("tx-list");
+  const txEmpty = document.getElementById("tx-empty");
+  const breakdownEl = document.getElementById("breakdown");
+  const breakdownEmpty = document.getElementById("breakdown-empty");
+
+  let type = "expense";
+  let txs = load();
+
+  function load(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    catch(e){ return []; }
+  }
+  function persist(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(txs)); } catch(e){} }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const fmt = n => {
+    try { return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n); }
+    catch(e){ return "$" + n.toFixed(2); }
+  };
+
+  function fillCategories(){
+    categorySel.innerHTML = CATEGORIES[type].map(c => `<option value="${c}">${c}</option>`).join("");
+  }
+
+  typeToggle.forEach(btn => {
+    btn.addEventListener("click", () => {
+      type = btn.dataset.type;
+      typeToggle.forEach(b => b.classList.toggle("active", b === btn));
+      fillCategories();
+    });
+  });
+  typeToggle[0].classList.add("active");
+  fillCategories();
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const amount = Math.round(parseFloat(amountInput.value) * 100);
+    if (!amount || amount <= 0) return;
+    txs.unshift({
+      id: uid(), type, desc: descInput.value.trim() || "(no description)",
+      category: categorySel.value, amount, date: new Date().toISOString(),
+    });
+    descInput.value = ""; amountInput.value = "";
+    persist(); render();
+    descInput.focus();
+  });
+
+  txList.addEventListener("click", e => {
+    const del = e.target.closest(".tx-del");
+    if (!del) return;
+    txs = txs.filter(t => t.id !== del.dataset.id);
+    persist(); render();
+  });
+
+  function isThisMonth(iso){
+    const d = new Date(iso), now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }
+
+  function render(){
+    const balanceCents = txs.reduce((sum, t) => sum + (t.type === "income" ? t.amount : -t.amount), 0);
+    balanceEl.textContent = fmt(balanceCents / 100);
+    balanceEl.classList.toggle("neg", balanceCents < 0);
+    balanceEl.classList.toggle("pos", balanceCents > 0);
+
+    const monthIn = txs.filter(t => t.type === "income" && isThisMonth(t.date)).reduce((s,t)=>s+t.amount,0);
+    const monthOut = txs.filter(t => t.type === "expense" && isThisMonth(t.date)).reduce((s,t)=>s+t.amount,0);
+    monthInEl.textContent = fmt(monthIn/100);
+    monthOutEl.textContent = fmt(monthOut/100);
+
+    txEmpty.hidden = txs.length > 0;
+    txList.innerHTML = txs.map(t => `
+      <li class="tx">
+        <span class="tx-dot ${t.type}"></span>
+        <span class="tx-body">
+          <div class="tx-desc">${esc(t.desc)}</div>
+          <div class="tx-meta">${esc(t.category)} · ${new Date(t.date).toLocaleDateString(undefined, {month:"short", day:"numeric"})}</div>
+        </span>
+        <span class="tx-amount ${t.type}">${t.type === "income" ? "+" : "−"}${fmt(t.amount/100)}</span>
+        <button class="tx-del" data-id="${t.id}" aria-label="Delete">×</button>
+      </li>`).join("");
+
+    const expenseTotal = txs.filter(t => t.type === "expense").reduce((s,t)=>s+t.amount,0);
+    const byCategory = {};
+    txs.filter(t => t.type === "expense").forEach(t => { byCategory[t.category] = (byCategory[t.category]||0) + t.amount; });
+    const rows = Object.entries(byCategory).sort((a,b)=>b[1]-a[1]);
+    breakdownEmpty.hidden = rows.length > 0;
+    breakdownEl.innerHTML = rows.map(([cat, cents]) => {
+      const pct = expenseTotal ? Math.round((cents/expenseTotal)*100) : 0;
+      return `<div class="bd-row">
+        <span class="bd-name">${esc(cat)}</span>
+        <span class="bd-track"><span class="bd-fill" style="width:${pct}%"></span></span>
+        <span class="bd-pct">${pct}%</span>
+      </div>`;
+    }).join("");
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
