@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Launch Shelf — Scarlet's Workshop</title>
+<meta name="description" content="Five businesses that reliably make money, each broken into the phases that take you from nothing to first customers. Pull a card off the shelf and work it top to bottom.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF6B4A'/><stop offset='1' stop-color='%237A0F22'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%23fff'>SW</text></svg>">
+</head>
+<body>
+<style>
+  :root {
+    --ink: #14251C;
+    --ink-soft: #1C3126;
+    --paper: #F7F3E8;
+    --paper-shade: #EDE6D4;
+    --brass: #B98F3E;
+    --brass-soft: #D8BC7E;
+    --text: #2C2818;
+    --muted: #6E6853;
+    --on-ink: #E9E4D2;
+    --on-ink-muted: #9AAF9E;
+    --accent: #B23A2E;
+    --accent-soft: #D8837A;
+    --font-serif: 'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --font-mono: ui-monospace,'SF Mono',Menlo,'Courier New',monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body { margin: 0; background: var(--ink); color: var(--on-ink); font-family: var(--font-serif); }
+
+  a { color: var(--brass-soft); text-decoration: underline; text-decoration-color: var(--brass); text-underline-offset: 3px; }
+  a:hover { color: var(--paper); }
+  button { font: inherit; color: inherit; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--brass-soft); outline-offset: 2px; border-radius: 3px; }
+
+  .wrap { max-width: 660px; margin: 0 auto; padding: 0 16px 64px; }
+
+  /* ---- header ---- */
+  header { padding: 40px 4px 26px; border-bottom: 1px solid var(--ink-soft); }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; color: var(--brass-soft); margin-bottom: 14px; }
+  h1 { font-weight: 400; font-size: clamp(30px, 7vw, 42px); line-height: 1.08; margin: 0; color: var(--paper); text-wrap: balance; }
+  h1 em { color: var(--brass-soft); }
+  .dek { font-size: 16px; line-height: 1.55; color: var(--on-ink-muted); margin: 16px 0 0; max-width: 46ch; }
+  .hint { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--on-ink-muted); margin: 14px 0 0; opacity: 0.75; }
+
+  /* ---- selector shelf ---- */
+  .shelf-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; color: var(--brass-soft); margin: 28px 0 12px; }
+  .shelf { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 540px) { .shelf { grid-template-columns: 1fr; } }
+  .biz-card { position: relative; display: block; width: 100%; text-align: left; background: var(--paper); border: none; border-radius: 6px; padding: 14px 14px 14px 22px; cursor: pointer; box-shadow: 0 2px 0 rgba(0,0,0,0.35); overflow: hidden; }
+  .biz-card .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; }
+  .biz-card .biz-name { font-size: 17px; font-weight: 600; color: var(--text); line-height: 1.25; margin-bottom: 4px; }
+  .biz-card .biz-pitch { font-size: 13px; line-height: 1.45; color: var(--muted); margin-bottom: 9px; }
+  .biz-card .biz-stats { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; color: var(--text); display: flex; flex-wrap: wrap; gap: 4px 12px; font-variant-numeric: tabular-nums; }
+  .biz-card .biz-stats b { font-weight: 400; color: var(--muted); }
+  .biz-card .biz-progress { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; margin-top: 8px; }
+  .biz-card[aria-pressed="true"] { outline: 2px solid var(--brass-soft); outline-offset: 2px; }
+  .biz-card[aria-pressed="true"]::after { content: "PULLED"; position: absolute; top: 10px; right: 10px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; color: var(--paper); background: var(--card-accent, var(--accent)); border-radius: 3px; padding: 2px 6px; }
+
+  /* ---- circulation record ---- */
+  .record { background: var(--paper); border-radius: 6px; padding: 14px 16px 16px; margin: 26px 0 30px; box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+  .record-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; gap: 12px; flex-wrap: wrap; }
+  .record-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; color: var(--accent); }
+  .record-phase { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--muted); }
+  .track { height: 10px; background: var(--paper-shade); border-radius: 5px; overflow: hidden; border: 1px solid var(--paper-shade); }
+  .fill { height: 100%; background: var(--accent); border-radius: 5px; transition: width 300ms ease; }
+  .record-count { font-family: var(--font-mono); font-size: 12px; color: var(--text); margin-top: 8px; font-variant-numeric: tabular-nums; }
+
+  /* ---- phase cards ---- */
+  .card { position: relative; background: var(--paper); border-radius: 6px; margin-bottom: 18px; box-shadow: 0 2px 0 rgba(0,0,0,0.35); overflow: hidden; }
+  .card-head { display: flex; align-items: baseline; gap: 12px; width: 100%; text-align: left; background: none; border: none; padding: 16px 16px 12px; cursor: pointer; }
+  .card-num { font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; flex-shrink: 0; }
+  .card-title { font-size: 19px; color: var(--text); font-weight: 600; flex-grow: 1; line-height: 1.25; }
+  .card-title .tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; color: var(--brass); border: 1px solid var(--brass); border-radius: 3px; padding: 2px 5px; margin-left: 8px; vertical-align: 2px; white-space: nowrap; }
+  .card-count { font-family: var(--font-mono); font-size: 11px; color: var(--muted); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .card-count.complete { color: var(--accent); }
+  .card-rule { margin: 0 16px; }
+  .card-rule div:first-child { height: 1px; background: var(--accent); }
+  .card-rule div:last-child { height: 1px; background: var(--accent); margin-top: 2px; opacity: 0.55; }
+  .card-body { padding: 14px 16px 30px; }
+  .card-why { font-size: 15px; line-height: 1.55; color: var(--text); margin: 0 0 14px; }
+
+  .task-row { display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left; background: none; border: none; padding: 7px 0; cursor: pointer; }
+  .task-box { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; border-radius: 3px; border: 1.5px solid var(--brass); color: var(--paper); font-size: 12px; line-height: 15px; text-align: center; font-family: var(--font-mono); }
+  .task-box.on { border-color: var(--accent); background: var(--accent); }
+  .task-label { font-size: 14.5px; line-height: 1.45; color: var(--text); text-decoration-color: var(--brass); }
+  .task-label.on { color: var(--muted); text-decoration: line-through; }
+
+  .see-also { margin-top: 14px; background: var(--paper-shade); border-radius: 4px; padding: 10px 12px; }
+  .see-also-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--muted); margin-bottom: 7px; }
+  .see-also-item { font-size: 13.5px; line-height: 1.7; color: var(--text); }
+  .see-also-item a { color: var(--accent); text-decoration-color: var(--accent); }
+  .see-also-item .note { color: var(--muted); }
+
+  .stamp { position: absolute; top: 10px; right: 12px; transform: rotate(-8deg); border: 2px solid var(--accent); border-radius: 4px; padding: 3px 8px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--paper), inset 0 0 0 2.5px var(--accent); background: rgba(0,0,0,0.04); pointer-events: none; animation: stampIn 260ms cubic-bezier(.2,1.4,.5,1) both; }
+  @keyframes stampIn { from { transform: rotate(-8deg) scale(1.6); opacity: 0; } to { transform: rotate(-8deg) scale(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } }
+  .punch { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 13px; height: 13px; border-radius: 50%; background: var(--ink); box-shadow: inset 0 1px 2px rgba(0,0,0,0.6); }
+
+  /* ---- habits ---- */
+  .habits { margin-top: 40px; border-top: 1px solid var(--ink-soft); padding-top: 28px; }
+  .habits-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em; color: var(--brass-soft); margin-bottom: 6px; }
+  .habits h2 { font-weight: 400; font-size: 26px; color: var(--paper); margin: 0 0 6px; text-wrap: balance; }
+  .habits-dek { font-size: 15px; line-height: 1.55; color: var(--on-ink-muted); margin: 0 0 22px; max-width: 46ch; }
+  .habit { display: flex; gap: 12px; margin-bottom: 18px; }
+  .habit-mark { color: var(--brass); font-family: var(--font-mono); font-size: 14px; line-height: 1.5; flex-shrink: 0; }
+  .habit-head { font-size: 16px; font-weight: 600; color: var(--on-ink); margin-bottom: 3px; }
+  .habit-body { font-size: 14.5px; line-height: 1.55; color: var(--on-ink-muted); }
+
+  /* ---- footer ---- */
+  footer { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--ink-soft); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .footer-note { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--on-ink-muted); opacity: 0.75; }
+  .reset-btn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; color: var(--on-ink-muted); background: transparent; border: 1px solid var(--ink-soft); border-radius: 4px; padding: 7px 12px; cursor: pointer; }
+  .reset-btn.confirm { color: var(--paper); background: var(--accent); border-color: var(--accent); }
+
+  .empty-note { font-size: 15px; line-height: 1.6; color: var(--on-ink-muted); margin: 30px 4px 0; max-width: 48ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><a href="../../">SCARLET'S WORKSHOP</a> &middot; LAUNCH OPERATIONS</div>
+    <h1>The Launch <em>Shelf</em></h1>
+    <p class="dek">Five businesses that reliably make money, each broken into the phases
+      that take you from nothing to first customers. Pull a card off the shelf and work
+      it top to bottom &mdash; every card explains why the phase matters, what to do, and
+      where to do it.</p>
+    <p class="hint">Progress saves automatically on this device, separately for each business.</p>
+  </header>
+
+  <div class="shelf-label">PULL A CARD</div>
+  <div class="shelf" id="shelf" role="group" aria-label="Choose a business"></div>
+
+  <div id="plan"></div>
+
+  <footer>
+    <span class="footer-note">Progress saves automatically on this device.</span>
+    <button class="reset-btn" id="reset-btn" onclick="handleReset()" hidden>RESET THIS PLAN</button>
+  </footer>
+</div>
+
+<script>
+  var STORAGE_KEY = "launch-shelf-v1";
+
+  var BUSINESSES = [
+    {
+      id: "detailing",
+      name: "Mobile Car Detailing",
+      accent: "#2E5AA7", accentSoft: "#8FA9D6",
+      pitch: "You drive to the customer. High margins, ~$1–2k to start, booked solid by word of mouth.",
+      stats: [["START", "$1–2K"], ["MARGIN", "60–70%"], ["FIRST $", "WEEK 1–2"]],
+      phases: [
+        { id: "de1", num: "01", title: "Make it a real business",
+          why: "Insurance and a business name take one afternoon and change everything: you can work on strangers' cars, park in office lots, and answer 'are you insured?' with yes.",
+          tasks: [
+            { id: "de1a", label: "Register the business and get general liability + garagekeepers insurance" },
+            { id: "de1b", label: "Pick a service area you can cover in 30 minutes' drive" },
+            { id: "de1c", label: "Set up a Google Business Profile with your area and phone number" },
+          ],
+          links: [
+            { label: "Google Business Profile", url: "https://business.google.com", note: "free — this is how locals find you" },
+            { label: "Next Insurance", url: "https://www.nextinsurance.com", note: "quick online liability quotes for detailers" },
+          ] },
+        { id: "de2", num: "02", title: "Build the mobile kit",
+          why: "Everything fits in a hatchback: extractor, polisher, water tank, generator. Buy mid-grade — pro chemicals matter more than pro machines at this stage.",
+          tasks: [
+            { id: "de2a", label: "Buy the starter kit: extractor, dual-action polisher, wash gear, water + power" },
+            { id: "de2b", label: "Detail 5 cars for friends free or cheap — time yourself and photograph everything" },
+            { id: "de2c", label: "Build a before/after photo folder from those first five cars" },
+          ],
+          links: [
+            { label: "Autogeek", url: "https://www.autogeek.net", note: "supplies + how-to library" },
+            { label: "Detail King", url: "https://www.detailking.com", note: "startup kits and training" },
+          ] },
+        { id: "de3", num: "03", title: "Price a simple menu",
+          why: "Three packages, flat prices by vehicle size. Per-hour pricing punishes you for getting faster; flat packages pay you for skill.",
+          tasks: [
+            { id: "de3a", label: "Set three packages: exterior wash, interior detail, full detail" },
+            { id: "de3b", label: "Price by size (car / SUV / truck) — check 3 local competitors first" },
+            { id: "de3c", label: "Add high-margin add-ons: pet hair, engine bay, headlight restore" },
+          ],
+          links: [] },
+        { id: "de4", num: "04", title: "Get the first 20 customers",
+          why: "Your market is your neighborhood. Before/after photos in local groups outperform any ad — people book the transformation, not the service.",
+          tasks: [
+            { id: "de4a", label: "Post before/afters in Nextdoor and local Facebook groups weekly" },
+            { id: "de4b", label: "Ask every customer for a Google review the same day, in person" },
+            { id: "de4c", label: "Leave a card + small discount offer with every finished car's neighbors" },
+          ],
+          links: [
+            { label: "Nextdoor Business", url: "https://business.nextdoor.com", note: "free local presence" },
+          ] },
+        { id: "de5", num: "05", title: "Systemize the bookings",
+          why: "The phone tag is what caps you. Online booking plus automatic reminders turns one-off washes into a schedule you can actually plan a week around.",
+          tasks: [
+            { id: "de5a", label: "Set up online booking with deposits to kill no-shows" },
+            { id: "de5b", label: "Launch a monthly maintenance plan — recurring beats one-off" },
+            { id: "de5c", label: "Track revenue and product cost per job in a simple sheet" },
+          ],
+          links: [
+            { label: "Square Appointments", url: "https://squareup.com/us/en/appointments", note: "free tier, takes deposits" },
+            { label: "Jobber", url: "https://www.getjobber.com", note: "quotes, scheduling, invoices for field service" },
+          ] },
+        { id: "de6", num: "06", title: "Land recurring accounts", ongoing: true,
+          why: "One dealership or small fleet is ten driveways of revenue on one parking lot. Recurring commercial work is what makes the income boring — in the good way.",
+          tasks: [
+            { id: "de6a", label: "Pitch 10 local used-car dealers, realtors, and small fleets" },
+            { id: "de6b", label: "Offer a standing weekly slot at a modest discount" },
+            { id: "de6c", label: "When you're booked 2 weeks out: raise prices 15% and repeat" },
+          ],
+          links: [] },
+      ],
+      habits: [
+        { head: "Photograph every job", body: "The before/after folder is the marketing department. No photo, no post, no next customer." },
+        { head: "Ask for the review while the car is shiny", body: "Same-day, in person, with the QR code ready. Reviews compound like interest." },
+        { head: "Sell the maintenance plan twice", body: "Once at booking, once at handoff — when the car looks its best and they want to keep it that way." },
+        { head: "Watch cost per job", body: "Chemicals creep. If margin slips under 60%, fix product usage before chasing more bookings." },
+      ],
+    },
+    {
+      id: "cleaning",
+      name: "Home Cleaning Service",
+      accent: "#2E7D62", accentSoft: "#8FC4AF",
+      pitch: "Recurring revenue from week one. The business is the schedule: weekly and biweekly clients who never leave.",
+      stats: [["START", "$500–1K"], ["MARGIN", "50–70%"], ["FIRST $", "WEEK 1"]],
+      phases: [
+        { id: "cl1", num: "01", title: "Set up legit",
+          why: "You're inside strangers' homes — bonded and insured isn't paperwork, it's the sales pitch. It's the first question every good client asks.",
+          tasks: [
+            { id: "cl1a", label: "Register the business; get liability insurance and a surety bond" },
+            { id: "cl1b", label: "Set up a Google Business Profile for your service area" },
+            { id: "cl1c", label: "Buy supplies for two full kits (~$300) so a helper can start any day" },
+          ],
+          links: [
+            { label: "Google Business Profile", url: "https://business.google.com", note: "where 'cleaner near me' searches land" },
+            { label: "Next Insurance", url: "https://www.nextinsurance.com", note: "covers bonding + liability for cleaners" },
+          ] },
+        { id: "cl2", num: "02", title: "Price flat, not hourly",
+          why: "Flat rates by bedrooms/bathrooms make quotes instant and reward you for speed. Hourly pricing caps your income at your stamina.",
+          tasks: [
+            { id: "cl2a", label: "Build a flat-rate table: beds × baths, standard vs deep clean" },
+            { id: "cl2b", label: "Set recurring discounts: weekly best, biweekly next, one-time premium" },
+            { id: "cl2c", label: "Write your scope list — what's included, what's an add-on" },
+          ],
+          links: [] },
+        { id: "cl3", num: "03", title: "Fill the first week",
+          why: "Ten regulars is a full-time income. They're hiding in local Facebook groups, Nextdoor threads, and the inboxes of realtors and landlords.",
+          tasks: [
+            { id: "cl3a", label: "Post an intro offer in every local group; message realtors and landlords" },
+            { id: "cl3b", label: "Do 5 discounted first cleans in exchange for honest reviews" },
+            { id: "cl3c", label: "Convert every one-time clean into a recurring slot before you leave" },
+          ],
+          links: [
+            { label: "Nextdoor Business", url: "https://business.nextdoor.com", note: "the neighborhood referral machine" },
+          ] },
+        { id: "cl4", num: "04", title: "Run on rails",
+          why: "Checklists make quality repeatable, and repeatable quality is what lets you eventually hand a house to someone who isn't you.",
+          tasks: [
+            { id: "cl4a", label: "Write a room-by-room checklist and use it on every job" },
+            { id: "cl4b", label: "Set up scheduling software with reminders and card payments" },
+            { id: "cl4c", label: "Track each client: rate, frequency, time in house, notes" },
+          ],
+          links: [
+            { label: "ZenMaid", url: "https://www.zenmaid.com", note: "scheduling built for cleaning businesses" },
+            { label: "Jobber", url: "https://www.getjobber.com", note: "the general-purpose alternative" },
+          ] },
+        { id: "cl5", num: "05", title: "Hire the first cleaner",
+          why: "The ceiling of a solo cleaning business is your own back. One good hire doubles capacity; your checklist is what makes their work match yours.",
+          tasks: [
+            { id: "cl5a", label: "Hire when you're booked 3+ weeks solid; pay above local average" },
+            { id: "cl5b", label: "Train on your checklist; shadow their first 5 houses" },
+            { id: "cl5c", label: "Keep quality visible: spot-checks and a post-clean photo routine" },
+          ],
+          links: [] },
+        { id: "cl6", num: "06", title: "Grow the book", ongoing: true,
+          why: "Past ten clients, growth is referrals and retention math: keeping a weekly client one extra year is worth more than five new one-timers.",
+          tasks: [
+            { id: "cl6a", label: "Pay referral credit: one free clean for every new recurring client" },
+            { id: "cl6b", label: "Add move-out and deep-clean packages at premium rates" },
+            { id: "cl6c", label: "Raise prices for new clients every 6 months; grandfather loyal ones slowly" },
+          ],
+          links: [] },
+      ],
+      habits: [
+        { head: "Protect the schedule", body: "The recurring calendar is the whole asset. Fill cancellations within 48 hours from a waitlist." },
+        { head: "Note everything about every home", body: "The gate code, the shy dog, the sink that scratches. Remembering is what clients call 'trustworthy'." },
+        { head: "Review after every first clean", body: "First-clean day is peak delight. That's when you ask, not two weeks later." },
+        { head: "Watch churn, not bookings", body: "If regulars are leaving, more marketing just refills a leaky bucket. Call anyone who cancels twice." },
+      ],
+    },
+    {
+      id: "courses",
+      name: "Digital Products & Courses",
+      accent: "#C4641B", accentSoft: "#E0A470",
+      pitch: "Package what you already know. Near-zero marginal cost — the work is validation and audience, not production.",
+      stats: [["START", "<$500"], ["MARGIN", "90%+"], ["FIRST $", "WEEK 2–6"]],
+      phases: [
+        { id: "co1", num: "01", title: "Pick a problem you've solved",
+          why: "Courses sell outcomes, not topics. 'Learn Excel' loses to 'build a rental-property model in a weekend'. Teach the specific thing people already ask you about.",
+          tasks: [
+            { id: "co1a", label: "List 5 things people ask your help with; pick the most painful one" },
+            { id: "co1b", label: "Write the transformation in one sentence: who, from what, to what" },
+            { id: "co1c", label: "Find 3 competing products — competition proves the market" },
+          ],
+          links: [
+            { label: "Gumroad Discover", url: "https://gumroad.com/discover", note: "browse what's actually selling" },
+          ] },
+        { id: "co2", num: "02", title: "Sell it before you build it",
+          why: "The brutal filter that saves you months: if a rough outline and a presale page can't collect 10 payments, a polished course wouldn't have either.",
+          tasks: [
+            { id: "co2a", label: "Post the outline where your audience lives and collect reactions" },
+            { id: "co2b", label: "Put up a presale page at a founding-member discount" },
+            { id: "co2c", label: "Get 10 presales or 25 waitlist emails before recording anything" },
+          ],
+          links: [
+            { label: "Gumroad", url: "https://gumroad.com", note: "presell with a one-page listing" },
+            { label: "Kit", url: "https://kit.com", note: "landing page + email list, free tier" },
+          ] },
+        { id: "co3", num: "03", title: "Record version one, small",
+          why: "Ship the 80% version to the founding members. Their questions tell you exactly what version two needs — polish is cheap after you know what confuses people.",
+          tasks: [
+            { id: "co3a", label: "Script loosely, record with OBS, keep lessons under 10 minutes" },
+            { id: "co3b", label: "Add the assets that make it feel complete: templates, checklists, worksheets" },
+            { id: "co3c", label: "Deliver to presale buyers and collect their sticking points" },
+          ],
+          links: [
+            { label: "OBS Studio", url: "https://obsproject.com", note: "free screen + camera recording" },
+            { label: "Descript", url: "https://www.descript.com", note: "edit video by editing the transcript" },
+          ] },
+        { id: "co4", num: "04", title: "Open the storefront",
+          why: "The platform choice is reversible; the pricing choice barely is. Price on the outcome's value, then add a premium tier — most creators underprice by half.",
+          tasks: [
+            { id: "co4a", label: "Set up the course on your platform with a real sales page" },
+            { id: "co4b", label: "Price three tiers: course / course + templates / course + a call" },
+            { id: "co4c", label: "Add 2–3 testimonials from founding members" },
+          ],
+          links: [
+            { label: "Podia", url: "https://www.podia.com", note: "courses + digital downloads, no per-sale cut" },
+            { label: "Teachable", url: "https://teachable.com", note: "the classic course host" },
+          ] },
+        { id: "co5", num: "05", title: "Build the traffic engine", ongoing: true,
+          why: "A course with no audience is a file on a server. One free channel, worked weekly, compounds: every post is a doorway to the sales page forever.",
+          tasks: [
+            { id: "co5a", label: "Pick one channel — YouTube, newsletter, or one social platform — and commit" },
+            { id: "co5b", label: "Publish weekly: teach a slice of the course for free" },
+            { id: "co5c", label: "Trade the best slice for emails; let a welcome sequence sell the course" },
+          ],
+          links: [
+            { label: "Kit", url: "https://kit.com", note: "automated welcome sequences" },
+          ] },
+        { id: "co6", num: "06", title: "Stack the product line",
+          why: "The second product is easier than the first — same audience, same trust. A small template, a flagship course, and a premium tier turn one buyer into three sales.",
+          tasks: [
+            { id: "co6a", label: "Add a low-price product ($19–39) as the easy first purchase" },
+            { id: "co6b", label: "Offer a premium tier: group cohort, coaching, or done-with-you" },
+            { id: "co6c", label: "Refresh the flagship twice a year and relaunch it to the list" },
+          ],
+          links: [] },
+      ],
+      habits: [
+        { head: "Teach in public every week", body: "The free content is the ad. If sales stall, the fix is almost always more teaching, not more selling." },
+        { head: "Collect proof relentlessly", body: "Screenshot every win a student shares. A wall of results outsells any copywriting." },
+        { head: "Answer every student question", body: "Each one is course feedback and future FAQ copy. Slow replies are the top refund reason." },
+        { head: "Watch email-to-sale conversion", body: "List growth is vanity if the welcome sequence doesn't convert. Fix the sequence before buying traffic." },
+      ],
+    },
+    {
+      id: "saas",
+      name: "Micro-SaaS",
+      accent: "#4348B8", accentSoft: "#9A9DDC",
+      pitch: "A small software tool that solves one expensive problem for one niche, on subscription. Slowest to start, best to own.",
+      stats: [["START", "<$100"], ["MARGIN", "80–90%"], ["FIRST $", "MONTH 1–3"]],
+      phases: [
+        { id: "sa1", num: "01", title: "Find one painful, boring problem",
+          why: "Micro-SaaS wins in the niches giants ignore: a scheduling quirk in one industry, a report someone builds by hand every Friday. Boring plus painful plus niche is the formula.",
+          tasks: [
+            { id: "sa1a", label: "Mine niche communities for 'I wish there was a tool for…' complaints" },
+            { id: "sa1b", label: "Pick a problem people already pay to solve badly (spreadsheets, VAs, duct tape)" },
+            { id: "sa1c", label: "Write the one-line pitch: 'X for Y, without Z'" },
+          ],
+          links: [
+            { label: "Indie Hackers", url: "https://www.indiehackers.com", note: "founders sharing what actually worked" },
+          ] },
+        { id: "sa2", num: "02", title: "Validate with talk, not code",
+          why: "Ten honest conversations beat three months of building. You're listening for the current workaround and what it costs — that's your pricing anchor.",
+          tasks: [
+            { id: "sa2a", label: "Talk to 10 people who have the problem; ask how they solve it today" },
+            { id: "sa2b", label: "Put up a landing page stating the price; collect emails" },
+            { id: "sa2c", label: "Kill or commit: proceed only if the workaround is genuinely hated" },
+          ],
+          links: [
+            { label: "Carrd", url: "https://carrd.co", note: "landing page in an hour" },
+          ] },
+        { id: "sa3", num: "03", title: "Build the smallest sellable version",
+          why: "One core workflow, done well, in weeks not months. Every feature you skip is a month of runway; the roadmap should be written by paying users, not by you.",
+          tasks: [
+            { id: "sa3a", label: "Cut scope to one workflow a user completes in their first session" },
+            { id: "sa3b", label: "Build on boring, cheap infrastructure you won't have to babysit" },
+            { id: "sa3c", label: "Get 5 beta users from your email list using it weekly" },
+          ],
+          links: [
+            { label: "Supabase", url: "https://supabase.com", note: "auth + database + storage in one" },
+            { label: "Vercel", url: "https://vercel.com", note: "deploy without running servers" },
+          ] },
+        { id: "sa4", num: "04", title: "Charge from day one",
+          why: "A free tier at this stage attracts users who cost money and prove nothing. A paid trial filters for people whose problem is real — the only signal that matters.",
+          tasks: [
+            { id: "sa4a", label: "Wire up Stripe with a 14-day trial, card upfront optional but priced" },
+            { id: "sa4b", label: "Price against the workaround's cost, not against your nerves" },
+            { id: "sa4c", label: "Offer annual at ~2 months off to fund the early days" },
+          ],
+          links: [
+            { label: "Stripe Billing", url: "https://docs.stripe.com/billing", note: "subscriptions, trials, invoices" },
+          ] },
+        { id: "sa5", num: "05", title: "Launch where the niche lives",
+          why: "Your first 100 customers come from the same forums where you found the problem. Show the before/after of the workflow — niche people recognize their own pain instantly.",
+          tasks: [
+            { id: "sa5a", label: "Launch in the niche's own communities before any big directory" },
+            { id: "sa5b", label: "Post a 60-second demo of the workflow, not a feature tour" },
+            { id: "sa5c", label: "Then do the directories: Product Hunt, niche newsletters, comparison sites" },
+          ],
+          links: [
+            { label: "Product Hunt", url: "https://www.producthunt.com", note: "one good launch day of traffic" },
+          ] },
+        { id: "sa6", num: "06", title: "Retain, then grow", ongoing: true,
+          why: "In subscription software, churn is the whole game. A tool woven into someone's weekly routine at 2% churn grows itself; at 10% you're refilling a leaky bucket forever.",
+          tasks: [
+            { id: "sa6a", label: "Talk to every user who cancels — the exit interview is free strategy" },
+            { id: "sa6b", label: "Ship the top requested improvement every month and announce it" },
+            { id: "sa6c", label: "Watch MRR and churn weekly; raise prices when value clearly outruns them" },
+          ],
+          links: [] },
+      ],
+      habits: [
+        { head: "Talk to users every week", body: "Two conversations a week keeps the roadmap honest. Silence is how micro-SaaS drifts into building nobody's product." },
+        { head: "Ship something visible monthly", body: "A changelog with a pulse retains customers. Stagnant tools get churned at renewal time." },
+        { head: "Keep infrastructure boring", body: "Every clever dependency is a 3am page waiting to happen. Boring stacks let one person sleep." },
+        { head: "Watch churn before MRR", body: "New revenue hides leaks. Retention first, acquisition second — in that order, always." },
+      ],
+    },
+    {
+      id: "vending",
+      name: "Vending Machine Route",
+      accent: "#B23A2E", accentSoft: "#D8837A",
+      pitch: "Machines earn while you sleep; you restock weekly. The real product isn't snacks — it's the location.",
+      stats: [["START", "$2–4K"], ["MARGIN", "40–50%"], ["FIRST $", "MONTH 1"]],
+      phases: [
+        { id: "ve1", num: "01", title: "Learn the numbers first",
+          why: "A machine in a bad spot loses money forever; the same machine 200 feet away can clear $400 a month. Foot traffic and dwell time decide everything — learn to read them before spending.",
+          tasks: [
+            { id: "ve1a", label: "Study the unit math: machine cost, product cost, expected monthly gross by location type" },
+            { id: "ve1b", label: "List 20 candidate locations: shops, gyms, offices, laundromats, schools" },
+            { id: "ve1c", label: "Check local rules: business license, food permits, sales tax" },
+          ],
+          links: [
+            { label: "Vending Connection", url: "https://www.vendingconnection.com", note: "industry directory + startup guides" },
+          ] },
+        { id: "ve2", num: "02", title: "Lock the first location",
+          why: "You're pitching the property owner a free amenity plus a commission. The machine is easy to buy; the yes is the scarce asset — get it in writing before you spend.",
+          tasks: [
+            { id: "ve2a", label: "Pitch owners: free amenity, you handle everything, 5–10% commission" },
+            { id: "ve2b", label: "Sign a simple location agreement before buying anything" },
+            { id: "ve2c", label: "Count the location's real foot traffic on 2 different days" },
+          ],
+          links: [] },
+        { id: "ve3", num: "03", title: "Buy the machine",
+          why: "Refurbished cuts the price roughly in half, and the card reader isn't optional — cashless is most of your sales now and the reader's data tells you what to restock.",
+          tasks: [
+            { id: "ve3a", label: "Buy a refurbished machine matched to the location (snack, drink, or combo)" },
+            { id: "ve3b", label: "Add a card reader with telemetry" },
+            { id: "ve3c", label: "Arrange delivery and placement — machines weigh 600+ lbs, hire movers" },
+          ],
+          links: [
+            { label: "UsedVending", url: "https://www.usedvending.com", note: "refurbished machine marketplace" },
+            { label: "Nayax", url: "https://www.nayax.com", note: "card readers + remote sales data" },
+          ] },
+        { id: "ve4", num: "04", title: "Stock what this spot sells",
+          why: "A gym and an office building want different machines. Buy wholesale, price at 2x product cost, and let the sales data — not your taste — pick the menu.",
+          tasks: [
+            { id: "ve4a", label: "Stock a starter mix from a wholesale club; keep receipts by machine" },
+            { id: "ve4b", label: "Price at roughly 2x cost; round to card-friendly numbers" },
+            { id: "ve4c", label: "After 30 days, cut the 5 worst sellers and double the best" },
+          ],
+          links: [
+            { label: "Sam's Club", url: "https://www.samsclub.com", note: "wholesale snack + drink stock" },
+          ] },
+        { id: "ve5", num: "05", title: "Run the weekly route", ongoing: true,
+          why: "This is a logistics business in a small way: one weekly loop, restock, clean, collect. The telemetry means you visit when machines need you, not on guesswork.",
+          tasks: [
+            { id: "ve5a", label: "Set a fixed weekly service day; clean the machine every visit" },
+            { id: "ve5b", label: "Track per-machine revenue, product cost, and commission monthly" },
+            { id: "ve5c", label: "Fix jams within 24 hours — a dead machine kills a location's trust" },
+          ],
+          links: [] },
+        { id: "ve6", num: "06", title: "Scale to a real route",
+          why: "Profit is a fleet game: five well-placed machines is a part-time income on one afternoon a week. Reinvest each machine's first months of profit into the next location.",
+          tasks: [
+            { id: "ve6a", label: "Reinvest profits: add a machine every 2–3 months into proven location types" },
+            { id: "ve6b", label: "Relocate any machine under target for 2 straight months — move, don't wait" },
+            { id: "ve6c", label: "At 5+ machines, plan the route order and consider bulk product delivery" },
+          ],
+          links: [] },
+      ],
+      habits: [
+        { head: "Let the data pick the menu", body: "Your card reader knows this location better than you do. Restock what sells, cut what sits." },
+        { head: "Keep location owners happy", body: "Pay commissions on time and leave the machine spotless. The location relationship is the moat." },
+        { head: "Answer breakdowns same-day", body: "Every day a machine is dark, the location owner reconsiders. Speed is the reputation." },
+        { head: "Judge machines monthly", body: "Each machine either earns its spot or moves. Sentiment about a location is how routes go stale." },
+      ],
+    },
+  ];
+
+  var state = { selected: null, biz: {}, open: {}, confirmReset: false };
+  var resetTimer = null;
+
+  function bizById(id) { return BUSINESSES.filter(function (b) { return b.id === id; })[0] || null; }
+  function bizState(id) {
+    if (!state.biz[id]) state.biz[id] = { checked: {}, stamps: {} };
+    return state.biz[id];
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data.biz) state.biz = data.biz;
+        if (data.selected && bizById(data.selected)) state.selected = data.selected;
+      }
+    } catch (e) { /* fresh shelf */ }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ selected: state.selected, biz: state.biz }));
+    } catch (e) { /* storage unavailable */ }
+  }
+
+  function stampDate() {
+    var months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    var d = new Date();
+    return months[d.getMonth()] + " " + d.getDate();
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function selectBiz(id) {
+    state.selected = id;
+    var biz = bizById(id);
+    state.open = {};
+    // open the first incomplete phase
+    var bs = bizState(id);
+    var firstOpen = biz.phases[0].id;
+    for (var i = 0; i < biz.phases.length; i++) {
+      var p = biz.phases[i];
+      if (!p.tasks.every(function (t) { return !!bs.checked[t.id]; })) { firstOpen = p.id; break; }
+    }
+    state.open[firstOpen] = true;
+    saveState();
+    render();
+    var plan = document.getElementById("plan");
+    if (plan.firstChild) plan.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function togglePhase(phaseId) {
+    state.open[phaseId] = !state.open[phaseId];
+    render();
+  }
+
+  function toggleTask(phaseId, taskId) {
+    var biz = bizById(state.selected);
+    var bs = bizState(state.selected);
+    bs.checked[taskId] = !bs.checked[taskId];
+    var phase = biz.phases.filter(function (p) { return p.id === phaseId; })[0];
+    var done = phase.tasks.every(function (t) { return !!bs.checked[t.id]; });
+    if (done && !bs.stamps[phaseId]) bs.stamps[phaseId] = stampDate();
+    if (!done && bs.stamps[phaseId]) delete bs.stamps[phaseId];
+    saveState();
+    render();
+  }
+
+  function handleReset() {
+    if (!state.selected) return;
+    if (!state.confirmReset) {
+      state.confirmReset = true;
+      renderFooter();
+      resetTimer = setTimeout(function () { state.confirmReset = false; renderFooter(); }, 3500);
+      return;
+    }
+    clearTimeout(resetTimer);
+    state.biz[state.selected] = { checked: {}, stamps: {} };
+    state.confirmReset = false;
+    saveState();
+    render();
+  }
+
+  function renderFooter() {
+    var btn = document.getElementById("reset-btn");
+    btn.hidden = !state.selected;
+    btn.textContent = state.confirmReset ? "TAP AGAIN TO CONFIRM" : "RESET THIS PLAN";
+    btn.className = "reset-btn" + (state.confirmReset ? " confirm" : "");
+  }
+
+  function renderShelf() {
+    document.getElementById("shelf").innerHTML = BUSINESSES.map(function (b) {
+      var bs = state.biz[b.id];
+      var total = 0, done = 0;
+      b.phases.forEach(function (p) { p.tasks.forEach(function (t) { total++; if (bs && bs.checked[t.id]) done++; }); });
+      var selected = state.selected === b.id;
+      var statsHtml = b.stats.map(function (s) { return "<span><b>" + s[0] + "</b> " + s[1] + "</span>"; }).join("");
+      var progressHtml = done > 0
+        ? '<div class="biz-progress" style="color:' + b.accent + '">' + done + "/" + total + " TASKS DONE</div>"
+        : "";
+      return '<button class="biz-card" aria-pressed="' + selected + '" style="--card-accent:' + b.accent + '" onclick="selectBiz(\'' + b.id + '\')">' +
+        '<span class="spine" style="background:' + b.accent + '" aria-hidden="true"></span>' +
+        '<div class="biz-name">' + esc(b.name) + '</div>' +
+        '<div class="biz-pitch">' + esc(b.pitch) + '</div>' +
+        '<div class="biz-stats">' + statsHtml + '</div>' +
+        progressHtml +
+        '</button>';
+    }).join("");
+  }
+
+  function renderPlan() {
+    var plan = document.getElementById("plan");
+    if (!state.selected) {
+      plan.innerHTML = '<p class="empty-note">No card pulled yet. Each plan runs the same way: phases in order, ' +
+        'a reason before every checklist, and links to the exact tools. Pick the one that fits the life you want ' +
+        '&mdash; hands-on and local, or quiet and online.</p>';
+      return;
+    }
+
+    var biz = bizById(state.selected);
+    var bs = bizState(state.selected);
+    document.documentElement.style.setProperty("--accent", biz.accent);
+    document.documentElement.style.setProperty("--accent-soft", biz.accentSoft);
+
+    var allIds = [];
+    biz.phases.forEach(function (p) { p.tasks.forEach(function (t) { allIds.push(t.id); }); });
+    var doneCount = allIds.filter(function (id) { return bs.checked[id]; }).length;
+    var total = allIds.length;
+    var pct = Math.round((doneCount / total) * 100);
+    var currentPhaseIdx = -1;
+    for (var i = 0; i < biz.phases.length; i++) {
+      if (!biz.phases[i].tasks.every(function (t) { return !!bs.checked[t.id]; })) { currentPhaseIdx = i; break; }
+    }
+    var phaseLabel = currentPhaseIdx === -1 ? "ALL PHASES SHELVED" : "PHASE " + (currentPhaseIdx + 1) + " OF " + biz.phases.length;
+
+    var cardsHtml = biz.phases.map(function (phase) {
+      var phaseDone = phase.tasks.filter(function (t) { return bs.checked[t.id]; }).length;
+      var complete = phaseDone === phase.tasks.length;
+      var isOpen = !!state.open[phase.id];
+
+      var tasksHtml = phase.tasks.map(function (t) {
+        var on = !!bs.checked[t.id];
+        return '<button class="task-row" role="checkbox" aria-checked="' + on + '" onclick="toggleTask(\'' + phase.id + '\',\'' + t.id + '\')">' +
+          '<span class="task-box' + (on ? " on" : "") + '" aria-hidden="true">' + (on ? "✓" : "") + '</span>' +
+          '<span class="task-label' + (on ? " on" : "") + '">' + esc(t.label) + '</span>' +
+          '</button>';
+      }).join("");
+
+      var linksHtml = "";
+      if (phase.links && phase.links.length) {
+        linksHtml = '<div class="see-also"><div class="see-also-label">SEE ALSO</div>' +
+          phase.links.map(function (l) {
+            return '<div class="see-also-item"><a href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.label) + '</a><span class="note"> — ' + esc(l.note) + '</span></div>';
+          }).join("") + '</div>';
+      }
+
+      var bodyHtml = isOpen ? (
+        '<div class="card-body"><p class="card-why">' + esc(phase.why) + '</p>' +
+        '<div role="group" aria-label="' + esc(phase.title) + ' tasks">' + tasksHtml + '</div>' +
+        linksHtml + '</div>'
+      ) : "";
+
+      var tagHtml = phase.ongoing ? '<span class="tag">ONGOING</span>' : "";
+      var stampHtml = complete ? (
+        '<div class="stamp" aria-label="Phase complete ' + esc(bs.stamps[phase.id] || "") + '">DONE' + (bs.stamps[phase.id] ? " · " + esc(bs.stamps[phase.id]) : "") + '</div>'
+      ) : "";
+
+      return '<article class="card">' +
+        '<button class="card-head" aria-expanded="' + isOpen + '" onclick="togglePhase(\'' + phase.id + '\')">' +
+        '<span class="card-num">' + phase.num + '</span>' +
+        '<span class="card-title">' + esc(phase.title) + tagHtml + '</span>' +
+        '<span class="card-count' + (complete ? " complete" : "") + '">' + phaseDone + '/' + phase.tasks.length + ' ' + (isOpen ? "▾" : "▸") + '</span>' +
+        '</button>' +
+        '<div class="card-rule"><div></div><div></div></div>' +
+        bodyHtml + stampHtml +
+        '<div class="punch" aria-hidden="true"></div>' +
+        '</article>';
+    }).join("");
+
+    var habitsHtml = biz.habits.map(function (h) {
+      return '<div class="habit"><span class="habit-mark" aria-hidden="true">—</span>' +
+        '<div><div class="habit-head">' + esc(h.head) + '</div><div class="habit-body">' + esc(h.body) + '</div></div></div>';
+    }).join("");
+
+    plan.innerHTML =
+      '<section class="record" aria-label="Overall progress">' +
+      '<div class="record-top"><span class="record-label">' + esc(biz.name).toUpperCase() + ' &middot; CIRCULATION RECORD</span>' +
+      '<span class="record-phase">' + phaseLabel + '</span></div>' +
+      '<div class="track"><div class="fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="record-count">' + doneCount + ' / ' + total + ' tasks · ' + pct + '%</div>' +
+      '</section>' +
+      cardsHtml +
+      '<section class="habits">' +
+      '<div class="habits-eyebrow">AFTER THE DOORS OPEN</div>' +
+      '<h2>Habits that grow it</h2>' +
+      '<p class="habits-dek">The phases get you open. These keep the ' + esc(biz.name.toLowerCase()) + ' business compounding after the first customers arrive.</p>' +
+      habitsHtml +
+      '</section>';
+  }
+
+  function render() {
+    renderShelf();
+    renderPlan();
+    renderFooter();
+  }
+
+  loadState();
+  render();
+</script>
+</body>
+</html>
