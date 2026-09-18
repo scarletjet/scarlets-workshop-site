@@ -331,7 +331,6 @@
       <a href="#/apps" data-route="apps">Apps</a>
       <a href="#/inventions" data-route="inventions">Inventions</a>
       <a href="#/tools" data-route="tools">Tools</a>
-      <a href="#/shop" data-route="shop">Shop</a>
       <a href="#/about" data-route="about">About</a>
     </nav>
   </div>
@@ -488,11 +487,6 @@
             + inventionsListHTML(INVENTIONS)
           + '</section>'
 
-          + '<section class="stack">'
-            + '<div class="sec-head"><h2>Shop</h2><a class="see-all" href="#/shop">See all ' + PRODUCTS.length + ' →</a></div>'
-            + '<div class="shop-grid">' + PRODUCTS.slice(0,3).map(shopCard).join("") + '</div>'
-          + '</section>'
-
           + ctaBlock;
       },
       afterRender: initGauge
@@ -554,37 +548,6 @@
           + '<div class="stack page-head"><span class="eyebrow">' + TOOLS.length + ' live</span><h1>Webpage tools</h1><p>Free, no-signup tools built for one job each.</p></div>'
           + '<section class="stack no-rule"><div class="tools-grid">' + TOOLS.map(toolCard).join("") + '</div></section>'
           + ctaBlock;
-      }
-    },
-
-    "shop": {
-      title: "Shop — Scarlet's Workshop",
-      render: function(){
-        return ''
-          + '<div class="stack page-head"><span class="eyebrow">Gumroad &amp; Etsy</span><h1>Shop</h1><p>Digital packs and physical prints, sold off-site on Gumroad and Etsy.</p></div>'
-          + '<section class="stack no-rule">'
-            + '<div class="filters" id="shop-filters">'
-              + '<button class="filter-btn" data-filter="all" aria-pressed="true">All</button>'
-              + '<button class="filter-btn" data-filter="gumroad" aria-pressed="false">Gumroad</button>'
-              + '<button class="filter-btn" data-filter="etsy" aria-pressed="false">Etsy</button>'
-            + '</div>'
-            + '<div class="shop-grid" id="shop-grid">' + PRODUCTS.map(shopCard).join("") + '</div>'
-          + '</section>'
-          + ctaBlock;
-      },
-      afterRender: function(){
-        var filters = document.getElementById("shop-filters");
-        var grid = document.getElementById("shop-grid");
-        if (!filters) return;
-        filters.addEventListener("click", function(e){
-          var btn = e.target.closest(".filter-btn");
-          if (!btn) return;
-          filters.querySelectorAll(".filter-btn").forEach(function(b){ b.setAttribute("aria-pressed", "false"); });
-          btn.setAttribute("aria-pressed", "true");
-          var f = btn.dataset.filter;
-          var items = f === "all" ? PRODUCTS : PRODUCTS.filter(function(p){ return p.platform === f; });
-          grid.innerHTML = items.map(shopCard).join("");
-        });
       }
     },
 
