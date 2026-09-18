@@ -10,586 +10,664 @@
 <meta property="og:description" content="Apps, art & webpages built to be convenient. Inventions you can download, plus works for sale on Gumroad and Etsy.">
 <meta property="og:url" content="https://scarletsworkshop.live/">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%234fd8ff'/><stop offset='1' stop-color='%23a06bff'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%2306121a'>SW</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF6B4A'/><stop offset='1' stop-color='%237A0F22'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%23fff'>SW</text></svg>">
 <style>
-  /* ============================================================
-     THEME — tweak your brand colors here
-     ============================================================ */
   :root{
-    --bg: #0a0e14;
-    --bg-soft: #0f1520;
-    --card: rgba(255,255,255,0.045);
-    --card-border: rgba(255,255,255,0.09);
-    --card-hover: rgba(255,255,255,0.08);
-    --text: #e8edf4;
-    --muted: #8b95a5;
-    --accent: #4fd8ff;        /* primary accent (cyan) */
-    --accent-2: #a06bff;      /* secondary accent (violet) */
-    --gumroad: #ff90e8;       /* Gumroad pink */
-    --etsy: #f1641e;          /* Etsy orange */
-    --radius: 16px;
-    --maxw: 680px;
+    --paper: #FBF3EC;
+    --paper-soft: #F2E3D6;
+    --surface: #FFFFFF;
+    --ink: #201512;
+    --ink-soft: #6B5951;
+    --scarlet: #C81E3A;
+    --scarlet-ink: #FFFFFF;
+    --garnet: #4B0D1B;
+    --garnet-soft: #6B1526;
+    --gold: #B87A22;
+    --line: #E4D2C1;
+    --shadow: 0 1px 2px rgba(32,21,18,0.06), 0 8px 24px -12px rgba(32,21,18,0.18);
+    --gumroad: #ff90e8;
+    --etsy: #f1641e;
   }
-  *{ box-sizing: border-box; margin: 0; padding: 0; }
-  html{ scroll-behavior: smooth; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #150E0C;
+      --paper-soft: #1F1512;
+      --surface: #221714;
+      --ink: #F3E7DE;
+      --ink-soft: #B4A099;
+      --scarlet: #FF4A63;
+      --scarlet-ink: #1A0509;
+      --garnet: #2A0810;
+      --garnet-soft: #3D0F19;
+      --gold: #E0A94E;
+      --line: #3A2A24;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper: #150E0C;
+    --paper-soft: #1F1512;
+    --surface: #221714;
+    --ink: #F3E7DE;
+    --ink-soft: #B4A099;
+    --scarlet: #FF4A63;
+    --scarlet-ink: #1A0509;
+    --garnet: #2A0810;
+    --garnet-soft: #3D0F19;
+    --gold: #E0A94E;
+    --line: #3A2A24;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{ box-sizing: border-box; }
   body{
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
-    line-height: 1.5;
-    min-height: 100vh;
-    background-image:
-      radial-gradient(ellipse 60% 40% at 50% -10%, rgba(79,216,255,0.13), transparent),
-      radial-gradient(ellipse 50% 35% at 80% 110%, rgba(160,107,255,0.10), transparent);
-    background-attachment: fixed;
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
   }
-  /* subtle tech grid overlay */
-  body::before{
-    content:"";
-    position: fixed; inset: 0; pointer-events: none;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-    background-size: 44px 44px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 90%);
-    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 90%);
-  }
-  .wrap{
-    max-width: var(--maxw);
-    margin: 0 auto;
-    padding: 48px 20px 80px;
-    position: relative;
-  }
+  .gutter{ padding-inline: 20px; }
+  .stack{ max-width: 1080px; margin-inline: auto; }
+  .stack-narrow{ max-width: 720px; margin-inline: auto; }
+  img{ max-width: 100%; }
+  h1,h2,h3{ font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3px; text-wrap: balance; margin: 0; }
+  a{ color: inherit; }
+  button{ font-family: inherit; }
+  .mono{ font-family: "IBM Plex Mono", ui-monospace, monospace; }
 
-  /* ============ Header (linktree-style) ============ */
-  header{ text-align: center; margin-bottom: 28px; }
-  .avatar{
-    width: 92px; height: 92px; margin: 0 auto 16px;
-    border-radius: 26px;
+  /* ---------- header / nav ---------- */
+  header.bar{
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+    background: var(--garnet);
+    color: #F6E9E2;
+    border-bottom: 1px solid rgba(0,0,0,0.25);
+  }
+  .bar-inner{
+    max-width: 1080px; margin-inline: auto; padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .brand{ display: flex; align-items: center; gap: 10px; text-decoration: none; color: #F6E9E2; }
+  .brand-mark{
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--scarlet), #ff7a5c);
     display: grid; place-items: center;
-    font-size: 34px; font-weight: 800; letter-spacing: 1px;
-    color: #06121a;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    box-shadow: 0 0 40px rgba(79,216,255,0.35), 0 0 80px rgba(160,107,255,0.2);
+    font-family: "Big Shoulders Display", sans-serif; font-weight: 900; font-size: 15px; color: #2A0810;
   }
-  h1{
-    font-size: 26px; font-weight: 800; letter-spacing: 0.5px;
+  .brand-name{ font-family: "Big Shoulders Display", sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.4px; text-transform: uppercase; }
+  nav.pills{ display: flex; gap: 4px; }
+  nav.pills a{
+    text-decoration: none; color: #E9CFC4; font-size: 13px; font-weight: 600;
+    padding: 7px 13px; border-radius: 999px; transition: background .15s, color .15s;
+    white-space: nowrap;
   }
-  h1 .at{ color: var(--accent); }
-  .tagline{ color: var(--muted); margin-top: 6px; font-size: 15px; }
-  .badges{ margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-  .badge{
-    font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    color: var(--muted);
-    border: 1px solid var(--card-border);
-    background: var(--card);
-    padding: 4px 12px; border-radius: 999px;
+  nav.pills a:hover{ background: rgba(255,255,255,0.08); color: #fff; }
+  nav.pills a[aria-current="page"]{ background: var(--scarlet); color: #fff; }
+  @media (max-width: 700px){
+    .bar-inner{ padding-block: 12px; }
+    nav.pills{
+      display: flex; overflow-x: auto; max-width: 58vw;
+      -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+      mask-image: linear-gradient(90deg, #000 85%, transparent);
+      scrollbar-width: none;
+    }
+    nav.pills::-webkit-scrollbar{ display: none; }
   }
-  .badge b{ color: var(--accent); font-weight: 600; }
-
-  /* ============ Section nav pills ============ */
-  nav{
-    position: sticky; top: 12px; z-index: 10;
-    display: flex; gap: 8px; justify-content: center;
-    margin: 26px 0 34px;
-  }
-  nav a{
-    text-decoration: none; color: var(--muted);
-    font-size: 14px; font-weight: 600;
-    padding: 9px 18px; border-radius: 999px;
-    border: 1px solid var(--card-border);
-    background: rgba(10,14,20,0.8);
-    backdrop-filter: blur(10px);
-    transition: all .2s;
-  }
-  nav a:hover{ color: var(--text); border-color: var(--accent); }
-
-  /* ============ Sections ============ */
-  section{ margin-bottom: 44px; }
-  .sec-head{ display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }
-  .sec-head h2{ font-size: 18px; font-weight: 700; letter-spacing: 0.3px; }
-  .sec-head .count{
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 12px; color: var(--muted);
-  }
-  .sec-head::before{
-    content:""; width: 10px; height: 10px; border-radius: 3px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    align-self: center;
+  @media (max-width: 480px){
+    .bar-inner{ padding-inline: 16px; }
+    .brand-name{ display: none; }
+    .brand-mark{ width: 34px; height: 34px; font-size: 16px; }
+    nav.pills{ max-width: 72vw; gap: 2px; }
+    nav.pills a{ font-size: 12.5px; padding: 6px 10px; }
   }
 
-  /* ============ App drawer (carousel) ============ */
-  .carousel{ position: relative; }
-  .app-drawer{
-    display: flex;
-    gap: 14px;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    padding: 6px 2px 14px;
-    scrollbar-width: none;           /* Firefox */
+  /* ---------- page head (non-home routes) ---------- */
+  .page-head{ padding-block: 40px 8px; }
+  .page-head .eyebrow{ margin-bottom: 10px; }
+  .page-head h1{ font-size: clamp(32px, 5vw, 48px); line-height: 1; }
+  .page-head p{ color: var(--ink-soft); font-size: 16px; max-width: 56ch; margin-top: 14px; }
+  @media (max-width: 480px){ .page-head{ padding-block: 28px 4px; } }
+
+  /* ---------- hero (home) ---------- */
+  .hero{ padding-block: 56px 48px; }
+  @media (max-width: 480px){ .hero{ padding-block: 32px 28px; } }
+  .hero-grid{ display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; }
+  @media (max-width: 780px){ .hero-grid{ grid-template-columns: 1fr; } }
+  .eyebrow{
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: 1.5px;
+    color: var(--scarlet); text-transform: uppercase; display: block;
   }
-  .app-drawer::-webkit-scrollbar{ display: none; }  /* Chrome/Safari */
-  .app{
-    flex: 0 0 132px;
+  .hero h1{ font-size: clamp(38px, 6vw, 62px); line-height: 0.98; }
+  .hero h1 em{ font-style: normal; color: var(--scarlet); }
+  .hero p.lede{ color: var(--ink-soft); font-size: 17px; max-width: 46ch; margin-top: 18px; }
+  .hero-cta{ display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+  @media (max-width: 420px){
+    .hero-cta{ flex-direction: column; }
+    .hero-cta .btn{ width: 100%; justify-content: center; }
+  }
+  .btn{
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 14px;
+    text-decoration: none; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn-solid{ background: var(--scarlet); color: var(--scarlet-ink); }
+  .btn-solid:hover{ filter: brightness(1.08); }
+  .btn-outline{ border-color: var(--line); color: var(--ink); background: transparent; }
+  .btn-outline:hover{ border-color: var(--scarlet); color: var(--scarlet); }
+
+  .gauge-panel{
+    position: relative; border-radius: 22px; overflow: hidden;
+    background: var(--garnet); box-shadow: var(--shadow);
+    aspect-ratio: 4 / 3.2; max-height: 340px;
+  }
+  .gauge-panel canvas{ width: 100%; height: 100%; display: block; }
+  @media (max-width: 480px){ .gauge-panel{ max-height: 260px; } }
+
+  /* ---------- sections ---------- */
+  section{ padding-block: 44px; border-top: 1px solid var(--line); }
+  section.no-rule{ border-top: none; }
+  .sec-head{ display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .sec-head h2{ font-size: clamp(24px, 3.4vw, 32px); }
+  .sec-head .count{ font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-soft); }
+  .see-all{ font-size: 13px; font-weight: 700; color: var(--scarlet); text-decoration: none; white-space: nowrap; }
+  .see-all:hover{ text-decoration: underline; }
+
+  /* apps */
+  .apps-row{
+    display: grid; grid-auto-flow: column; grid-auto-columns: 148px;
+    gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity;
+  }
+  .apps-row::-webkit-scrollbar{ height: 6px; }
+  .apps-row::-webkit-scrollbar-thumb{ background: var(--line); border-radius: 4px; }
+  .apps-grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 780px){ .apps-grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 380px){ .apps-grid{ grid-template-columns: 1fr; } }
+  .app-card{
     scroll-snap-align: start;
-    text-decoration: none; color: var(--text);
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    padding: 16px 8px 12px;
-    border-radius: var(--radius);
-    border: 1px solid var(--card-border);
-    background: var(--card);
-    transition: all .18s;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 14px; text-decoration: none; color: var(--ink);
+    display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow);
+    transition: transform .15s, border-color .15s;
   }
-  .car-btn{
-    position: absolute; top: 50%; transform: translateY(-50%);
-    z-index: 5;
-    width: 38px; height: 38px; border-radius: 50%;
-    display: grid; place-items: center;
-    font-size: 17px; line-height: 1;
-    color: var(--text); cursor: pointer;
-    background: rgba(10,14,20,0.85);
-    border: 1px solid var(--card-border);
-    backdrop-filter: blur(8px);
-    transition: all .18s;
-  }
-  .car-btn:hover{ border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(79,216,255,0.25); }
-  .car-btn.prev{ left: -14px; }
-  .car-btn.next{ right: -14px; }
-  .car-btn[disabled]{ opacity: 0.3; cursor: default; pointer-events: none; }
-  .car-fade{
-    position: absolute; top: 0; bottom: 8px; width: 42px; z-index: 2; pointer-events: none;
-  }
-  .car-fade.left{ left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
-  .car-fade.right{ right: 0; background: linear-gradient(-90deg, var(--bg), transparent); }
-  .car-dots{ display: flex; gap: 7px; justify-content: center; margin-top: 2px; }
-  .car-dots .dot{
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--card-border);
-    border: none; padding: 0; cursor: pointer;
-    transition: all .2s;
-  }
-  .car-dots .dot.active{
-    width: 20px; border-radius: 999px;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  }
-  .app:hover{ background: var(--card); border-color: var(--card-border); transform: translateY(-2px); }
-  .app-icon{
-    width: 58px; height: 58px; border-radius: 16px;
-    display: grid; place-items: center;
-    font-size: 26px;
-    background: var(--bg-soft);
-    border: 1px solid var(--card-border);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-    transition: box-shadow .18s;
-  }
-  .app:hover .app-icon{ box-shadow: 0 0 22px rgba(79,216,255,0.25); border-color: rgba(79,216,255,0.4); }
-  .app-name{ font-size: 12.5px; font-weight: 600; text-align: center; }
-  .app-desc{ font-size: 11px; color: var(--muted); text-align: center; }
+  .app-card:hover{ transform: translateY(-2px); border-color: var(--scarlet); }
+  .app-icon{ font-size: 26px; }
+  .app-name{ font-weight: 700; font-size: 14px; }
+  .app-desc{ font-size: 12px; color: var(--ink-soft); }
 
-  /* ============ Webpage link cards ============ */
-  .links{ display: flex; flex-direction: column; gap: 12px; }
-  .link-card{
-    display: flex; align-items: center; gap: 14px;
-    text-decoration: none; color: var(--text);
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    transition: all .18s;
+  /* invention / list rows */
+  .list-rows{ display: flex; flex-direction: column; }
+  .list-row{
+    display: grid; grid-template-columns: 64px 1fr auto auto; align-items: center; gap: 18px;
+    padding-block: 18px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink);
   }
-  .link-card:hover{
-    background: var(--card-hover);
-    border-color: rgba(79,216,255,0.45);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+  .list-row:first-child{ border-top: 1px solid var(--line); }
+  .row-thumb{
+    width: 64px; height: 64px; border-radius: 12px; display: grid; place-items: center;
+    font-size: 26px; background: var(--paper-soft); border: 1px solid var(--line); overflow: hidden;
   }
-  .link-emoji{
-    width: 44px; height: 44px; flex: 0 0 44px;
-    display: grid; place-items: center; font-size: 20px;
-    border-radius: 12px; background: var(--bg-soft);
-    border: 1px solid var(--card-border);
+  .row-title{ font-weight: 700; font-size: 16px; }
+  .row-desc{ font-size: 13px; color: var(--ink-soft); margin-top: 3px; max-width: 56ch; }
+  .row-price{ font-family: "IBM Plex Mono", monospace; font-weight: 600; color: var(--gold); font-size: 14px; }
+  .row-cta{
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 8px 16px; border-radius: 999px; background: var(--ink); color: var(--paper);
+    white-space: nowrap;
   }
-  .link-body{ flex: 1; min-width: 0; }
-  .link-title{ font-weight: 700; font-size: 15px; }
-  .link-desc{ font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .link-arrow{ color: var(--muted); font-size: 18px; transition: transform .18s, color .18s; }
-  .link-card:hover .link-arrow{ transform: translateX(3px); color: var(--accent); }
+  @media (max-width: 560px){
+    .list-row{ grid-template-columns: 48px 1fr; row-gap: 8px; }
+    .row-price, .row-cta{ grid-column: 2; justify-self: start; }
+  }
+  .empty-note{
+    margin-top: 18px; padding: 16px 18px; border: 1px dashed var(--line); border-radius: 12px;
+    font-size: 13px; color: var(--ink-soft);
+  }
 
-  /* ============ Shop ============ */
-  .filters{ display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  /* tools grid */
+  .tools-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 720px){ .tools-grid{ grid-template-columns: 1fr; } }
+  .tool-card{
+    border: 1px solid var(--line); border-radius: 16px; padding: 22px;
+    text-decoration: none; color: var(--ink); background: var(--surface);
+    display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow);
+    transition: border-color .15s, transform .15s;
+  }
+  .tool-card:hover{ border-color: var(--scarlet); transform: translateY(-2px); }
+  .tool-icon{ font-size: 28px; }
+  .tool-card h3{ font-size: 19px; text-transform: none; letter-spacing: 0; }
+  .tool-card p{ font-size: 13px; color: var(--ink-soft); margin: 0; }
+
+  /* shop */
+  .filters{ display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .filter-btn{
-    font-size: 13px; font-weight: 600;
-    color: var(--muted); background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: 999px; padding: 7px 16px;
-    cursor: pointer; transition: all .18s;
-    font-family: inherit;
+    font-size: 13px; font-weight: 700; color: var(--ink-soft); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 999px; padding: 7px 16px; cursor: pointer;
   }
-  .filter-btn:hover{ color: var(--text); }
-  .filter-btn.active{ color: #06121a; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; }
-  .filter-btn.active.f-gumroad{ background: var(--gumroad); }
-  .filter-btn.active.f-etsy{ background: var(--etsy); color: #fff; }
+  .filter-btn[aria-pressed="true"]{ color: #fff; background: var(--scarlet); border-color: transparent; }
+  .shop-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 720px){ .shop-grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 460px){ .shop-grid{ grid-template-columns: 1fr; } }
+  .shop-card{
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface);
+    text-decoration: none; color: var(--ink); box-shadow: var(--shadow);
+  }
+  .shop-thumb{
+    aspect-ratio: 1; display: grid; place-items: center; font-size: 34px;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(200,30,58,0.16), transparent 60%),
+      var(--paper-soft);
+  }
+  .shop-body{ padding: 12px 14px 16px; }
+  .shop-title{ font-weight: 700; font-size: 14px; }
+  .shop-meta{ display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .shop-price{ font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--gold); }
+  .platform-badge{
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 3px 8px; border-radius: 999px; color: #1A0509;
+  }
+  .platform-badge.gumroad{ background: var(--gumroad); }
+  .platform-badge.etsy{ background: var(--etsy); color: #fff; }
 
-  .shop-grid{
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+  /* about */
+  .about-block{ margin-bottom: 30px; }
+  .about-block h2{ font-size: 20px; color: var(--scarlet); margin-bottom: 10px; }
+  .about-block p{ color: var(--ink-soft); font-size: 15px; max-width: 62ch; }
+  .principle-list{ list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .principle-list li{
+    display: flex; gap: 12px; align-items: baseline; font-size: 15px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--line);
   }
-  @media (max-width: 480px){ .shop-grid{ grid-template-columns: 1fr; } }
-  .product{
-    display: flex; flex-direction: column;
-    text-decoration: none; color: var(--text);
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    transition: all .18s;
-  }
-  .product:hover{ transform: translateY(-3px); border-color: rgba(255,255,255,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
-  .product-img{
-    height: 120px;
-    display: grid; place-items: center;
-    font-size: 38px;
-    background: linear-gradient(135deg, rgba(79,216,255,0.16), rgba(160,107,255,0.16));
-    border-bottom: 1px solid var(--card-border);
-  }
-  .product-body{ padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-  .product-title{ font-weight: 700; font-size: 14.5px; }
-  .product-desc{ font-size: 12.5px; color: var(--muted); flex: 1; }
-  .product-foot{ display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-  .price{ font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-weight: 700; font-size: 14px; color: var(--accent); }
-  .platform{
-    font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
-    padding: 3px 10px; border-radius: 999px;
-  }
-  .platform.gumroad{ background: rgba(255,144,232,0.15); color: var(--gumroad); border: 1px solid rgba(255,144,232,0.35); }
-  .platform.etsy{ background: rgba(241,100,30,0.15); color: var(--etsy); border: 1px solid rgba(241,100,30,0.4); }
+  .principle-list .mark{ color: var(--scarlet); font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13px; }
 
-  .store-ctas{ display: flex; gap: 12px; margin-top: 16px; }
-  .store-cta{
-    flex: 1; text-align: center; text-decoration: none;
-    font-weight: 700; font-size: 14px;
-    padding: 13px; border-radius: var(--radius);
-    transition: all .18s; border: 1px solid transparent;
+  /* CTA / footer */
+  .cta{
+    background: var(--garnet); color: #F6E9E2; border-radius: 22px;
+    padding: 44px 32px; text-align: center; margin-block: 12px 44px;
   }
-  .store-cta.gumroad{ background: var(--gumroad); color: #1a0a16; }
-  .store-cta.etsy{ background: var(--etsy); color: #fff; }
-  .store-cta:hover{ transform: translateY(-2px); filter: brightness(1.08); }
+  .cta h2{ font-size: clamp(26px, 4vw, 40px); color: #fff; }
+  .cta p{ color: #E9CFC4; margin: 12px auto 0; max-width: 46ch; }
+  .cta .btn-solid{ margin-top: 22px; }
+  @media (max-width: 480px){ .cta{ padding: 32px 22px; border-radius: 18px; } }
 
-  /* ============ Inventions ============ */
-  .inv-grid{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-  @media (max-width: 480px){ .inv-grid{ grid-template-columns: 1fr; } }
-  .inv-card{
-    display: flex; flex-direction: column;
-    text-decoration: none; color: var(--text);
-    background: var(--card); border: 1px solid var(--card-border);
-    border-radius: var(--radius); overflow: hidden; transition: all .18s;
-  }
-  .inv-card:hover{ transform: translateY(-3px); border-color: rgba(79,216,255,0.45); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
-  .inv-img{
-    height: 128px; display: grid; place-items: center; font-size: 40px;
-    background: linear-gradient(135deg, rgba(79,216,255,0.16), rgba(160,107,255,0.16));
-    border-bottom: 1px solid var(--card-border); overflow: hidden;
-  }
-  .inv-img img{ width: 100%; height: 100%; object-fit: cover; }
-  .inv-body{ padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-  .inv-title{ font-weight: 700; font-size: 14.5px; }
-  .inv-desc{ font-size: 12.5px; color: var(--muted); flex: 1; }
-  .inv-foot{ display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-  .inv-price{ font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-weight: 700; font-size: 14px; color: var(--accent); }
-  .inv-tag{
-    font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
-    padding: 3px 10px; border-radius: 999px;
-    background: rgba(160,107,255,0.15); color: var(--accent-2); border: 1px solid rgba(160,107,255,0.35);
-  }
-
-  footer{
-    text-align: center; color: var(--muted);
-    font-size: 12.5px; margin-top: 30px;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  }
-  footer a{ color: var(--accent); text-decoration: none; }
+  footer{ padding-block: 28px calc(28px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
+  .foot-row{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .foot-name{ font-family: "Big Shoulders Display", sans-serif; font-weight: 800; text-transform: uppercase; }
+  .foot-links{ display: flex; gap: 16px; }
+  .foot-links a{ color: var(--ink-soft); text-decoration: none; font-size: 13px; }
+  .foot-links a:hover{ color: var(--scarlet); }
+  .copyright{ color: var(--ink-soft); font-size: 12px; margin-top: 14px; }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 </head>
 <body>
-<div class="wrap">
 
-  <header>
-    <div class="avatar" id="avatar"></div>
-    <h1><span class="at">@</span><span id="studio-name"></span></h1>
-    <p class="tagline" id="tagline"></p>
-    <div class="badges">
-      <span class="badge"><b>▲</b> apps</span>
-      <span class="badge"><b>◈</b> art</span>
-      <span class="badge"><b>⌘</b> webpages</span>
+<header class="bar">
+  <div class="bar-inner">
+    <a class="brand" href="#/">
+      <span class="brand-mark">SW</span>
+      <span class="brand-name">Scarlet's Workshop</span>
+    </a>
+    <nav class="pills" id="nav-pills">
+      <a href="#/" data-route="">Home</a>
+      <a href="#/apps" data-route="apps">Apps</a>
+      <a href="#/inventions" data-route="inventions">Inventions</a>
+      <a href="#/tools" data-route="tools">Tools</a>
+      <a href="#/shop" data-route="shop">Shop</a>
+      <a href="#/about" data-route="about">About</a>
+    </nav>
+  </div>
+</header>
+
+<main id="app" class="gutter" tabindex="-1"></main>
+
+<footer class="gutter">
+  <div class="stack">
+    <div class="foot-row">
+      <span class="foot-name">Scarlet's Workshop</span>
+      <div class="foot-links">
+        <a href="mailto:hello@scarletsworkshop.live">hello@scarletsworkshop.live</a>
+        <a href="#" onclick="return false" aria-label="Gumroad">Gumroad</a>
+        <a href="#" onclick="return false" aria-label="Etsy">Etsy</a>
+      </div>
     </div>
-  </header>
-
-  <nav>
-    <a href="#apps">Apps</a>
-    <a href="#webpages">Webpages</a>
-    <a href="#inventions">Inventions</a>
-    <a href="#shop">Shop</a>
-  </nav>
-
-  <section id="apps">
-    <div class="sec-head"><h2>App Drawer</h2><span class="count" id="apps-count"></span></div>
-    <div class="carousel">
-      <button class="car-btn prev" id="car-prev" aria-label="Scroll apps left">‹</button>
-      <div class="car-fade left"></div>
-      <div class="app-drawer" id="app-drawer"></div>
-      <div class="car-fade right"></div>
-      <button class="car-btn next" id="car-next" aria-label="Scroll apps right">›</button>
-    </div>
-    <div class="car-dots" id="car-dots"></div>
-  </section>
-
-  <section id="webpages">
-    <div class="sec-head"><h2>Webpages</h2><span class="count" id="pages-count"></span></div>
-    <div class="links" id="page-links"></div>
-  </section>
-
-  <section id="inventions" hidden>
-    <div class="sec-head"><h2>Inventions</h2><span class="count" id="inv-count"></span></div>
-    <div class="inv-grid" id="inv-grid"></div>
-  </section>
-
-  <section id="shop">
-    <div class="sec-head"><h2>Shop</h2><span class="count" id="shop-count"></span></div>
-    <div class="filters" id="filters">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn f-gumroad" data-filter="gumroad">Gumroad</button>
-      <button class="filter-btn f-etsy" data-filter="etsy">Etsy</button>
-    </div>
-    <div class="shop-grid" id="shop-grid"></div>
-    <div class="store-ctas">
-      <a class="store-cta gumroad" id="cta-gumroad" href="#" target="_blank" rel="noopener">Visit Gumroad Store →</a>
-      <a class="store-cta etsy" id="cta-etsy" href="#" target="_blank" rel="noopener">Visit Etsy Shop →</a>
-    </div>
-  </section>
-
-  <footer>
-    <p>© <span id="year"></span> <span id="footer-name"></span> · built with convenience in mind</p>
-  </footer>
-
-</div>
+    <p class="copyright">© <span id="year"></span> Scarlet's Workshop. Built in the workshop.</p>
+  </div>
+</footer>
 
 <script>
-/* ================================================================
-   EDIT EVERYTHING BELOW — this is your site's content.
-   Replace the placeholder text and "#" links with your real ones.
-   Add or remove items freely; the page renders from this data.
-   ================================================================ */
+(function(){
+  document.getElementById("year").textContent = new Date().getFullYear();
 
-const SITE = {
-  name: "ScarletsWorkshop",                 // ← your business name
-  initials: "SW",                           // ← shown in the logo tile
-  tagline: "Apps, art & webpages — built to be convenient.",
-  gumroadStore: "https://scarletsworkshop.gumroad.com",   // ← replace with your real Gumroad store URL
-  etsyShop: "https://www.etsy.com/shop/ScarletsWorkshop", // ← replace with your real Etsy shop URL
-};
+  var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  }); };
 
-/* --- 1. Deployed apps (the app drawer) --- */
-const APPS = [
-  { name: "TaskPilot",   icon: "🚀", url: "#", desc: "to-do, simplified" },
-  { name: "PixelPad",    icon: "🎨", url: "#", desc: "sketch anywhere" },
-  { name: "QuickNotes",  icon: "📝", url: "#", desc: "notes that sync" },
-  { name: "BudgetBee",   icon: "🐝", url: "#", desc: "money tracker" },
-  { name: "TimeSlice",   icon: "⏱️", url: "#", desc: "focus timer" },
-  { name: "LinkVault",   icon: "🔗", url: "#", desc: "save your links" },
-  { name: "WeatherOrb",  icon: "🌤️", url: "#", desc: "glanceable forecast" },
-  { name: "SoundLoop",   icon: "🎧", url: "#", desc: "ambient mixer" },
-];
+  var APPS = [
+    { name: "TaskPilot",  icon: "🚀", url: "#", desc: "to-do, simplified" },
+    { name: "PixelPad",   icon: "🎨", url: "#", desc: "sketch anywhere" },
+    { name: "QuickNotes", icon: "📝", url: "#", desc: "notes that sync" },
+    { name: "BudgetBee",  icon: "🐝", url: "#", desc: "money tracker" },
+    { name: "TimeSlice",  icon: "⏱️", url: "#", desc: "focus timer" },
+    { name: "LinkVault",  icon: "🔗", url: "#", desc: "save your links" },
+    { name: "WeatherOrb", icon: "🌤️", url: "#", desc: "glanceable forecast" },
+    { name: "SoundLoop",  icon: "🎧", url: "#", desc: "ambient mixer" }
+  ];
+  var INVENTIONS = null; /* null = still loading; [] = loaded, none live */
+  var TOOLS = [
+    { title: "168 — Your Week in Hours", icon: "⏳", url: "/168/", desc: "Interactive weekly time-budget visualizer" },
+    { title: "Video → Steps", icon: "🎬", url: "/video-to-steps/", desc: "How-to videos become written guides" },
+    { title: "Git Project Mover", icon: "🔀", url: "/git-mover/", desc: "Build the exact commands to move a project between machines" }
+  ];
+  var PRODUCTS = [
+    { title: "Icon Pack Vol. 1", emoji: "◈", price: "$12", platform: "gumroad" },
+    { title: "Notion Dashboard Kit", emoji: "▦", price: "$18", platform: "gumroad" },
+    { title: "Procreate Brush Set", emoji: "🖌️", price: "$9", platform: "gumroad" },
+    { title: "Art Print — 'Circuit'", emoji: "🖼️", price: "$24", platform: "etsy" },
+    { title: "Sticker Sheet Pack", emoji: "✨", price: "$7", platform: "etsy" },
+    { title: "Custom Pet Portrait", emoji: "🐾", price: "$45", platform: "etsy" }
+  ];
 
-/* --- 2. Webpages --- */
-const PAGES = [
-  /* Nested creations live in the pages/ folder — link them with a relative
-     URL like "pages/your-page/". */
-  { title: "168 — Your Week in Hours",  icon: "⏳", url: "pages/168/", desc: "Interactive weekly time-budget visualizer" },
-  { title: "Video → Steps",             icon: "🎬", url: "pages/video-to-steps/", desc: "App overview — how-to videos become written guides" },
-  { title: "Git Project Mover",         icon: "🔀", url: "pages/git-mover/", desc: "Build the exact commands to move a project between machines" },
-  { title: "Portfolio",        icon: "🖼️", url: "#", desc: "Selected art & design work" },
-  { title: "Blog / Devlog",    icon: "✍️", url: "#", desc: "Notes on building convenient things" },
-  { title: "About the Studio", icon: "👋", url: "#", desc: "Who we are and how to reach us" },
-];
-
-/* --- 3. Works for sale (platform: "gumroad" or "etsy") --- */
-const PRODUCTS = [
-  { title: "Icon Pack Vol. 1",       emoji: "◈",  price: "$12",  platform: "gumroad", url: "#", desc: "120 crisp vector icons for apps & sites" },
-  { title: "Notion Dashboard Kit",   emoji: "▦",  price: "$18",  platform: "gumroad", url: "#", desc: "Plug-and-play productivity templates" },
-  { title: "Procreate Brush Set",    emoji: "🖌️", price: "$9",   platform: "gumroad", url: "#", desc: "24 texture brushes for digital art" },
-  { title: "Art Print — 'Circuit'",  emoji: "🖼️", price: "$24",  platform: "etsy",    url: "#", desc: "Museum-quality giclée print, A3" },
-  { title: "Sticker Sheet Pack",     emoji: "✨", price: "$7",   platform: "etsy",    url: "#", desc: "Die-cut vinyl stickers, waterproof" },
-  { title: "Custom Pet Portrait",    emoji: "🐾", price: "$45",  platform: "etsy",    url: "#", desc: "Hand-drawn digital portrait of your pet" },
-];
-
-/* ================================================================
-   RENDERING — no need to edit below this line.
-   ================================================================ */
-
-document.getElementById("avatar").textContent = SITE.initials;
-document.getElementById("studio-name").textContent = SITE.name;
-document.getElementById("footer-name").textContent = SITE.name;
-document.getElementById("tagline").textContent = SITE.tagline;
-document.getElementById("year").textContent = new Date().getFullYear();
-document.getElementById("cta-gumroad").href = SITE.gumroadStore;
-document.getElementById("cta-etsy").href = SITE.etsyShop;
-
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
-
-const APPS_HTML = APPS.map(a => `
-  <a class="app" href="${esc(a.url)}" target="_blank" rel="noopener" title="${esc(a.desc)}">
-    <span class="app-icon">${a.icon}</span>
-    <span class="app-name">${esc(a.name)}</span>
-    <span class="app-desc">${esc(a.desc)}</span>
-  </a>`).join("");
-document.getElementById("apps-count").textContent = `// ${APPS.length} deployed`;
-
-/* --- app drawer carousel controls (infinite loop) --- */
-const drawer = document.getElementById("app-drawer");
-const prevBtn = document.getElementById("car-prev");
-const nextBtn = document.getElementById("car-next");
-const dotsEl = document.getElementById("car-dots");
-
-drawer.innerHTML = APPS_HTML;
-let segW = drawer.scrollWidth;                       // width of one copy of the app list
-const looping = segW > drawer.clientWidth + 4;       // only loop if there's overflow to scroll
-
-if (looping){
-  // three identical copies; the user rides the middle one and we
-  // silently teleport by one copy-width when they drift off it.
-  drawer.innerHTML = APPS_HTML + APPS_HTML + APPS_HTML;
-  const tiles = drawer.querySelectorAll(".app");
-  segW = tiles[APPS.length].offsetLeft - tiles[0].offsetLeft;  // exact width of one copy
-  drawer.scrollLeft = segW;
-} else {
-  prevBtn.style.display = "none";
-  nextBtn.style.display = "none";
-}
-
-function carPageWidth(){ return drawer.clientWidth; }
-function carPages(){ return Math.max(1, Math.ceil(segW / carPageWidth())); }
-function carOffset(){ return looping ? ((drawer.scrollLeft - segW) % segW + segW) % segW : drawer.scrollLeft; }
-
-function carUpdate(){
-  if (!looping){ dotsEl.innerHTML = ""; return; }
-  const pages = carPages();
-  const page = Math.round(carOffset() / carPageWidth()) % pages;
-  dotsEl.innerHTML = Array.from({ length: pages }, (_, i) =>
-    `<button class="dot${i === page ? " active" : ""}" data-page="${i}" aria-label="Go to apps page ${i + 1}"></button>`
-  ).join("");
-}
-
-// Reposition to the equivalent spot on the middle copy with an INSTANT
-// (non-animated) jump. The content is pixel-identical one copy-width away,
-// so the user never sees it happen — that's the infinite illusion.
-let settleTimer;
-function carNormalize(){
-  if (!looping) return;
-  const target = segW + carOffset();
-  if (Math.abs(drawer.scrollLeft - target) > 1){
-    drawer.style.scrollBehavior = "auto";     // force instant jump
-    drawer.scrollLeft = target;
-    drawer.style.scrollBehavior = "";
+  /* ---- card builders ---- */
+  function appCard(a){
+    return '<a class="app-card" href="'+esc(a.url)+'" title="'+esc(a.desc)+'">'
+      + '<span class="app-icon">'+a.icon+'</span>'
+      + '<span class="app-name">'+esc(a.name)+'</span>'
+      + '<span class="app-desc">'+esc(a.desc)+'</span></a>';
   }
-}
+  function inventionRow(v){
+    var price = v.price > 0 ? "$" + (v.price/100).toFixed(2) : "—";
+    var thumb = v.hero
+      ? '<img src="'+esc(v.hero)+'" alt="" style="width:100%;height:100%;object-fit:cover;">'
+      : (v.emoji || "🛠️");
+    return '<a class="list-row" href="inventions/'+esc(v.slug)+'/">'
+      + '<span class="row-thumb">'+thumb+'</span>'
+      + '<span><span class="row-title">'+esc(v.name)+'</span>'
+      + '<div class="row-desc">'+esc(v.tagline||"")+'</div></span>'
+      + '<span class="row-price mono">'+price+'</span>'
+      + '<span class="row-cta">View</span></a>';
+  }
+  function inventionsListHTML(items){
+    if (items === null) return '<p class="empty-note">Loading inventions…</p>';
+    if (!items.length) return '<p class="empty-note">No inventions listed yet — check back soon.</p>';
+    return '<div class="list-rows">' + items.map(inventionRow).join("") + '</div>';
+  }
+  function toolCard(t){
+    return '<a class="tool-card" href="'+esc(t.url)+'">'
+      + '<span class="tool-icon">'+t.icon+'</span>'
+      + '<h3>'+esc(t.title)+'</h3><p>'+esc(t.desc)+'</p></a>';
+  }
+  function shopCard(p){
+    return '<a class="shop-card" href="#">'
+      + '<span class="shop-thumb">'+p.emoji+'</span>'
+      + '<div class="shop-body">'
+      + '<div class="shop-title">'+esc(p.title)+'</div>'
+      + '<div class="shop-meta"><span class="shop-price mono">'+esc(p.price)+'</span>'
+      + '<span class="platform-badge '+p.platform+'">'+p.platform+'</span></div>'
+      + '</div></a>';
+  }
 
-// Normalize right before every arrow scroll so there is always a full copy
-// of runway ahead/behind — forward always animates forward, backward always
-// animates backward, no matter how fast you click.
-let btnScrolling = false;  // true while an arrow-click animation is in flight
-prevBtn.addEventListener("click", () => { carNormalize(); btnScrolling = true; drawer.scrollBy({ left: -carPageWidth(), behavior: "smooth" }); });
-nextBtn.addEventListener("click", () => { carNormalize(); btnScrolling = true; drawer.scrollBy({ left: carPageWidth(), behavior: "smooth" }); });
-dotsEl.addEventListener("click", e => {
-  const dot = e.target.closest(".dot");
-  if (!dot) return;
-  carNormalize();
-  const pages = carPages(), cur = Math.round(carOffset() / carPageWidth()) % pages, to = +dot.dataset.page;
-  // travel the short way around the loop, always as a visible slide
-  let delta = (to - cur) % pages;
-  if (delta > pages / 2) delta -= pages;
-  if (delta < -pages / 2) delta += pages;
-  drawer.scrollBy({ left: delta * carPageWidth(), behavior: "smooth" });
-});
-drawer.addEventListener("scroll", () => {
-  requestAnimationFrame(carUpdate);
-  // hard boundary check for swipes/flings: if the user strays off the middle
-  // copy, wrap instantly so there is always more runway in both directions.
-  // (Skipped mid-arrow-animation — an instant jump would cut it short.)
-  if (looping && !btnScrolling && (drawer.scrollLeft >= segW * 2 || drawer.scrollLeft < segW * 0.5)) carNormalize();
-  clearTimeout(settleTimer);
-  settleTimer = setTimeout(() => { btnScrolling = false; carNormalize(); }, 140);
-});
-window.addEventListener("resize", carUpdate);
-carUpdate();
+  var ctaBlock =
+    '<section class="stack no-rule">'
+      + '<div class="cta">'
+        + '<h2>Got something to build?</h2>'
+        + '<p>Commission a one-off invention, request an app, or just say hi — replies come from the workshop, not a bot.</p>'
+        + '<a class="btn btn-solid" href="mailto:hello@scarletsworkshop.live">Email the workshop</a>'
+      + '</div>'
+    + '</section>';
 
-document.getElementById("page-links").innerHTML = PAGES.map(p => `
-  <a class="link-card" href="${esc(p.url)}" target="_blank" rel="noopener">
-    <span class="link-emoji">${p.icon}</span>
-    <span class="link-body">
-      <span class="link-title">${esc(p.title)}</span><br>
-      <span class="link-desc">${esc(p.desc)}</span>
-    </span>
-    <span class="link-arrow">→</span>
-  </a>`).join("");
-document.getElementById("pages-count").textContent = `// ${PAGES.length} live`;
+  /* ---- route templates ---- */
+  var routes = {
 
-/* --- Inventions: rendered from inventions/catalog.json (built by scripts/build-catalog.mjs) --- */
-(function renderInventions(){
+    "": {
+      title: "Scarlet's Workshop",
+      render: function(){
+        return ''
+          + '<section class="hero stack no-rule">'
+            + '<div class="hero-grid">'
+              + '<div>'
+                + '<span class="eyebrow">Apps · Art · Webpages</span>'
+                + '<h1>Built to be <em>used</em>,<br>not just admired.</h1>'
+                + '<p class="lede">Scarlet\'s Workshop makes apps, art, and webpages that are convenient to use — plus a few physical inventions you can bolt straight to a job site.</p>'
+                + '<div class="hero-cta">'
+                  + '<a class="btn btn-solid" href="#/inventions">Shop inventions</a>'
+                  + '<a class="btn btn-outline" href="#/apps">See the apps</a>'
+                + '</div>'
+              + '</div>'
+              + '<div class="gauge-panel"><canvas id="gauge" aria-label="Illustrated workshop gauge and blueprint grid" role="img"></canvas></div>'
+            + '</div>'
+          + '</section>'
+
+          + '<section class="stack">'
+            + '<div class="sec-head"><h2>Deployed apps</h2><a class="see-all" href="#/apps">See all ' + APPS.length + ' →</a></div>'
+            + '<div class="apps-row">' + APPS.slice(0,5).map(appCard).join("") + '</div>'
+          + '</section>'
+
+          + '<section class="stack">'
+            + '<div class="sec-head"><h2>Inventions</h2><a class="see-all" href="#/inventions">See all →</a></div>'
+            + inventionsListHTML(INVENTIONS)
+          + '</section>'
+
+          + '<section class="stack">'
+            + '<div class="sec-head"><h2>Shop</h2><a class="see-all" href="#/shop">See all ' + PRODUCTS.length + ' →</a></div>'
+            + '<div class="shop-grid">' + PRODUCTS.slice(0,3).map(shopCard).join("") + '</div>'
+          + '</section>'
+
+          + ctaBlock;
+      },
+      afterRender: initGauge
+    },
+
+    "apps": {
+      title: "Apps — Scarlet's Workshop",
+      render: function(){
+        return ''
+          + '<div class="stack page-head"><span class="eyebrow">' + APPS.length + ' deployed</span><h1>App drawer</h1><p>Small, focused apps — each one does one thing and gets out of the way.</p></div>'
+          + '<section class="stack no-rule"><div class="apps-grid">' + APPS.map(appCard).join("") + '</div></section>'
+          + ctaBlock;
+      }
+    },
+
+    "inventions": {
+      title: "Inventions — Scarlet's Workshop",
+      render: function(){
+        return ''
+          + '<div class="stack page-head"><span class="eyebrow">CAD · STL · PDF downloads</span><h1>Inventions</h1><p>Physical tools designed in the workshop, sold as downloadable build files — print or machine them yourself.</p></div>'
+          + '<section class="stack no-rule">'
+            + inventionsListHTML(INVENTIONS)
+            + '<p class="empty-note">More inventions are on the bench. New drops get added to this list first.</p>'
+          + '</section>'
+          + ctaBlock;
+      }
+    },
+
+    "tools": {
+      title: "Tools — Scarlet's Workshop",
+      render: function(){
+        return ''
+          + '<div class="stack page-head"><span class="eyebrow">' + TOOLS.length + ' live</span><h1>Webpage tools</h1><p>Free, no-signup tools built for one job each.</p></div>'
+          + '<section class="stack no-rule"><div class="tools-grid">' + TOOLS.map(toolCard).join("") + '</div></section>'
+          + ctaBlock;
+      }
+    },
+
+    "shop": {
+      title: "Shop — Scarlet's Workshop",
+      render: function(){
+        return ''
+          + '<div class="stack page-head"><span class="eyebrow">Gumroad &amp; Etsy</span><h1>Shop</h1><p>Digital packs and physical prints, sold off-site on Gumroad and Etsy.</p></div>'
+          + '<section class="stack no-rule">'
+            + '<div class="filters" id="shop-filters">'
+              + '<button class="filter-btn" data-filter="all" aria-pressed="true">All</button>'
+              + '<button class="filter-btn" data-filter="gumroad" aria-pressed="false">Gumroad</button>'
+              + '<button class="filter-btn" data-filter="etsy" aria-pressed="false">Etsy</button>'
+            + '</div>'
+            + '<div class="shop-grid" id="shop-grid">' + PRODUCTS.map(shopCard).join("") + '</div>'
+          + '</section>'
+          + ctaBlock;
+      },
+      afterRender: function(){
+        var filters = document.getElementById("shop-filters");
+        var grid = document.getElementById("shop-grid");
+        if (!filters) return;
+        filters.addEventListener("click", function(e){
+          var btn = e.target.closest(".filter-btn");
+          if (!btn) return;
+          filters.querySelectorAll(".filter-btn").forEach(function(b){ b.setAttribute("aria-pressed", "false"); });
+          btn.setAttribute("aria-pressed", "true");
+          var f = btn.dataset.filter;
+          var items = f === "all" ? PRODUCTS : PRODUCTS.filter(function(p){ return p.platform === f; });
+          grid.innerHTML = items.map(shopCard).join("");
+        });
+      }
+    },
+
+    "about": {
+      title: "About — Scarlet's Workshop",
+      render: function(){
+        return ''
+          + '<div class="stack-narrow page-head"><span class="eyebrow">The studio</span><h1>About the workshop</h1></div>'
+          + '<section class="stack-narrow no-rule">'
+            + '<div class="about-block">'
+              + '<h2>What this is</h2>'
+              + '<p>Scarlet\'s Workshop is one person\'s bench: apps, art, webpages and a few physical inventions, all made because they were fun or useful to build. Everything here ships as its own small, focused thing rather than one sprawling product.</p>'
+            + '</div>'
+            + '<div class="about-block">'
+              + '<h2>How it\'s built</h2>'
+              + '<p>Every app, tool and invention page lives in its own folder and becomes its own web address automatically — no build step, no CMS. That\'s deliberate: it keeps each creation small enough to finish and easy to find again.</p>'
+              + '<ul class="principle-list">'
+                + '<li><span class="mark">01</span><span>One folder, one URL — nothing is buried behind a router.</span></li>'
+                + '<li><span class="mark">02</span><span>Free tools stay free; inventions ship with real CAD/STL/PDF files, not just a render.</span></li>'
+                + '<li><span class="mark">03</span><span>If it\'s not convenient to use, it\'s not finished.</span></li>'
+              + '</ul>'
+            + '</div>'
+            + '<div class="about-block">'
+              + '<h2>Say hello</h2>'
+              + '<p>Commission requests, bug reports, and "can you make this" ideas are all welcome at <a href="mailto:hello@scarletsworkshop.live" style="color:var(--scarlet);font-weight:600;">hello@scarletsworkshop.live</a>.</p>'
+            + '</div>'
+          + '</section>';
+      }
+    }
+  };
+
+  /* ---- blueprint gauge canvas (home only) ---- */
+  function initGauge(){
+    var canvas = document.getElementById("gauge");
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var t0 = performance.now();
+
+    function resize(){
+      var rect = canvas.getBoundingClientRect();
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+    }
+
+    function draw(now){
+      if (!document.body.contains(canvas)) { return; }
+      var w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.fillStyle = "#4B0D1B";
+      ctx.fillRect(0, 0, w, h);
+
+      var step = 26 * dpr;
+      ctx.strokeStyle = "rgba(255,255,255,0.055)";
+      ctx.lineWidth = 1;
+      for (var x = 0; x <= w; x += step){ ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+      for (var y = 0; y <= h; y += step){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+      var pad = 22 * dpr, arm = 14 * dpr;
+      ctx.strokeStyle = "rgba(255,255,255,0.35)";
+      ctx.lineWidth = 1.5 * dpr;
+      [[pad,pad],[w-pad,pad],[pad,h-pad],[w-pad,h-pad]].forEach(function(c){
+        ctx.beginPath(); ctx.moveTo(c[0]-arm, c[1]); ctx.lineTo(c[0]+arm, c[1]); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(c[0], c[1]-arm); ctx.lineTo(c[0], c[1]+arm); ctx.stroke();
+      });
+
+      var cx = w/2, cy = h/2, r = Math.min(w,h) * 0.30;
+      ctx.strokeStyle = "rgba(255,255,255,0.22)";
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, r*0.7, 0, Math.PI*2); ctx.stroke();
+
+      var ticks = 24;
+      for (var i=0; i<ticks; i++){
+        var a = (i/ticks) * Math.PI*2;
+        var major = i % 6 === 0;
+        var inner = r * (major ? 0.78 : 0.85);
+        var outer = r * 1.0;
+        ctx.strokeStyle = major ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.3)";
+        ctx.lineWidth = (major ? 2 : 1) * dpr;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a)*inner, cy + Math.sin(a)*inner);
+        ctx.lineTo(cx + Math.cos(a)*outer, cy + Math.sin(a)*outer);
+        ctx.stroke();
+      }
+
+      var elapsed = reduceMotion ? 0 : (now - t0) / 1000;
+      var sweep = (Math.sin(elapsed * 0.35) * 0.5 + 0.5);
+      var needleAngle = -Math.PI*0.75 + sweep * Math.PI*1.5;
+      ctx.strokeStyle = "#FF4A63";
+      ctx.lineWidth = 2.5 * dpr;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(needleAngle)*r*0.62, cy + Math.sin(needleAngle)*r*0.62);
+      ctx.stroke();
+      ctx.fillStyle = "#FF4A63";
+      ctx.beginPath(); ctx.arc(cx, cy, 4*dpr, 0, Math.PI*2); ctx.fill();
+
+      ctx.save();
+      ctx.translate(w*0.16, h*0.82);
+      ctx.rotate(-0.5);
+      ctx.strokeStyle = "rgba(255,255,255,0.55)";
+      ctx.lineWidth = 5*dpr; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-16*dpr, 0); ctx.lineTo(16*dpr, 0); ctx.stroke();
+      ctx.beginPath(); ctx.arc(-16*dpr, 0, 8*dpr, Math.PI*0.25, Math.PI*1.75); ctx.stroke();
+      ctx.beginPath(); ctx.arc(16*dpr, 0, 8*dpr, Math.PI*1.25, Math.PI*0.75); ctx.stroke();
+      ctx.restore();
+
+      if (!reduceMotion){ requestAnimationFrame(draw); }
+    }
+
+    resize();
+    draw(performance.now());
+    window.addEventListener("resize", function(){ resize(); if (reduceMotion) draw(performance.now()); });
+  }
+
+  /* ---- router ---- */
+  var app = document.getElementById("app");
+  function currentRoute(){
+    var h = location.hash.replace(/^#\/?/, "");
+    return routes[h] ? h : "";
+  }
+  function render(){
+    var key = currentRoute();
+    var route = routes[key];
+    app.innerHTML = route.render();
+    document.title = route.title;
+    document.querySelectorAll("#nav-pills a").forEach(function(a){
+      if (a.dataset.route === key) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
+    });
+    app.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+    if (route.afterRender) route.afterRender();
+  }
+  window.addEventListener("hashchange", render);
+  render();
+
   fetch("inventions/catalog.json", { cache: "no-cache" })
-    .then(r => r.ok ? r.json() : null)
-    .then(data => {
-      const items = data && Array.isArray(data.inventions) ? data.inventions : [];
-      if (!items.length) return;
-      const fmt = it => {
-        const amt = (it.price || 0) / 100;
-        try { return new Intl.NumberFormat(undefined, { style: "currency", currency: (it.currency || "usd").toUpperCase() }).format(amt); }
-        catch { return "$" + amt.toFixed(2); }
-      };
-      document.getElementById("inv-grid").innerHTML = items.map(it => `
-        <a class="inv-card" href="inventions/${esc(it.slug)}/">
-          <span class="inv-img">${it.hero ? `<img src="${esc(it.hero)}" alt="${esc(it.name)}">` : (it.emoji || "🛠️")}</span>
-          <span class="inv-body">
-            <span class="inv-title">${esc(it.name)}</span>
-            <span class="inv-desc">${esc(it.tagline || "")}</span>
-            <span class="inv-foot">
-              <span class="inv-price">${it.price > 0 ? fmt(it) : "—"}</span>
-              <span class="inv-tag">Download</span>
-            </span>
-          </span>
-        </a>`).join("");
-      document.getElementById("inv-count").textContent = `// ${items.length} for sale`;
-      document.getElementById("inventions").hidden = false;
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data){
+      INVENTIONS = (data && Array.isArray(data.inventions)) ? data.inventions : [];
+      var key = currentRoute();
+      if (key === "" || key === "inventions") render();
     })
-    .catch(() => {});
+    .catch(function(){ INVENTIONS = []; });
 })();
-
-const grid = document.getElementById("shop-grid");
-function renderShop(filter){
-  const items = PRODUCTS.filter(p => filter === "all" || p.platform === filter);
-  grid.innerHTML = items.map(p => `
-    <a class="product" href="${esc(p.url)}" target="_blank" rel="noopener">
-      <span class="product-img">${p.emoji}</span>
-      <span class="product-body">
-        <span class="product-title">${esc(p.title)}</span>
-        <span class="product-desc">${esc(p.desc)}</span>
-        <span class="product-foot">
-          <span class="price">${esc(p.price)}</span>
-          <span class="platform ${esc(p.platform)}">${p.platform === "gumroad" ? "Gumroad" : "Etsy"}</span>
-        </span>
-      </span>
-    </a>`).join("");
-  document.getElementById("shop-count").textContent = `// ${items.length} of ${PRODUCTS.length} works`;
-}
-renderShop("all");
-
-document.getElementById("filters").addEventListener("click", e => {
-  const btn = e.target.closest(".filter-btn");
-  if (!btn) return;
-  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  renderShop(btn.dataset.filter);
-});
 </script>
 </body>
 </html>
