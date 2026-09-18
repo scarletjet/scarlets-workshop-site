@@ -367,6 +367,14 @@
       desc: "How-to videos become written guides", colors: ["#5b5bd6", "#8f8ff6"] }
   ];
   var INVENTIONS = null; /* null = still loading; [] = loaded, none live */
+  var WRITEUPS = [
+    { title: "Video → Steps", emoji: "🎬", url: "inventions/video-to-steps/", tag: "Overview",
+      desc: "How-to videos become written guides — an overview of the app." },
+    { title: "The Launch Shelf", emoji: "📚", url: "inventions/the-launch-shelf/", tag: "Tool",
+      desc: "Five businesses that reliably make money, broken into ordered phases." },
+    { title: "Fleet One-Shot Builder", emoji: "🛠️", url: "inventions/fleet-one-shot-builder/", tag: "Tool",
+      desc: "Commission a multi-agent Discord fleet on a VPS, one phase at a time." }
+  ];
   var TOOLS = [
     { title: "168", icon: "⏳", url: "tools/168/", desc: "Interactive weekly time-budget visualizer" },
     { title: "Git Mover", icon: "🔀", url: "tools/git-mover/", desc: "Build the exact commands to move a project between machines" },
@@ -408,6 +416,14 @@
       + '<div class="row-desc">'+esc(v.tagline||"")+'</div></span>'
       + '<span class="row-price mono">'+price+'</span>'
       + '<span class="row-cta">View</span></a>';
+  }
+  function writeupRow(w){
+    return '<a class="list-row" href="'+esc(w.url)+'">'
+      + '<span class="row-thumb">'+w.emoji+'</span>'
+      + '<span><span class="row-title">'+esc(w.title)+'</span>'
+      + '<div class="row-desc">'+esc(w.desc)+'</div></span>'
+      + '<span class="row-price mono">'+esc(w.tag)+'</span>'
+      + '<span class="row-cta">Open</span></a>';
   }
   function inventionsListHTML(items){
     if (items === null) return '<p class="empty-note">Loading inventions…</p>';
@@ -517,6 +533,10 @@
           + '<section class="stack no-rule">'
             + inventionsListHTML(INVENTIONS)
             + '<p class="empty-note">More inventions are on the bench. New drops get added to this list first.</p>'
+          + '</section>'
+          + '<section class="stack">'
+            + '<div class="sec-head"><h2>Write-ups &amp; tools</h2></div>'
+            + '<div class="list-rows">' + WRITEUPS.map(writeupRow).join("") + '</div>'
           + '</section>'
           + ctaBlock;
       }

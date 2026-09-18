@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fleet One-Shot Builder — Scarlet's Workshop</title>
+<meta name="description" content="Commission a multi-agent Discord fleet on a VPS, one phase at a time — names your crew, then hands Claude Code the exact one-shot prompt to build it.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF6B4A'/><stop offset='1' stop-color='%237A0F22'/></linearGradient></defs><rect width='100' height='100' rx='26' fill='url(%23g)'/><text x='50' y='68' font-size='48' font-weight='800' font-family='sans-serif' text-anchor='middle' fill='%23fff'>SW</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#E8EDEE; --surface:#FBFCFC; --surface-2:#F0F3F4; --raised:#FFFFFF;
+  --ink:#16252C; --muted:#5C7079; --line:#CFD9DD; --line-strong:#AFBFC6;
+  --brass:#9C5B14; --brass-soft:#F3E3CE;
+  --signal:#0D6E68; --signal-soft:#DCEDEB;
+  --warn:#A3311D; --warn-soft:#F7E2DC;
+  --code-bg:#182B33; --code-ink:#DCE8EA;
+  --r:6px;
+  --display:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1619; --surface:#152229; --surface-2:#1B2A32; --raised:#1E2E37;
+  --ink:#DFE8EB; --muted:#8DA3AC; --line:#26373F; --line-strong:#3A4E58;
+  --brass:#D9903F; --brass-soft:#3A2A15;
+  --signal:#43B6AC; --signal-soft:#12302E;
+  --warn:#E3765C; --warn-soft:#38201A;
+  --code-bg:#0A1215; --code-ink:#CFE0E3;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E1619; --surface:#152229; --surface-2:#1B2A32; --raised:#1E2E37;
+  --ink:#DFE8EB; --muted:#8DA3AC; --line:#26373F; --line-strong:#3A4E58;
+  --brass:#D9903F; --brass-soft:#3A2A15;
+  --signal:#43B6AC; --signal-soft:#12302E;
+  --warn:#E3765C; --warn-soft:#38201A;
+  --code-bg:#0A1215; --code-ink:#CFE0E3;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:3px}
+a{color:var(--brass);text-underline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- masthead ---- */
+.masthead{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--surface);border-bottom:1px solid var(--line)}
+.masthead-in{max-width:840px;margin:0 auto;padding:9px 16px;display:flex;align-items:center;gap:12px}
+.mark{display:flex;align-items:baseline;gap:9px;min-width:0}
+.mark b{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.015em;white-space:nowrap}
+.mark span{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mast-actions{margin-left:auto;display:flex;gap:7px;flex:none}
+
+.btn{border:1px solid var(--line-strong);background:var(--raised);border-radius:5px;padding:7px 13px;font-size:13.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--brass);border-color:var(--brass);color:#FFF8EF;font-weight:600}
+:root[data-theme="dark"] .btn.primary{color:#170F05}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary{color:#170F05}}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border-color:var(--line)}
+.btn.tiny{padding:4px 9px;font-size:12px;border-radius:4px}
+.btn[disabled]{opacity:.42;cursor:not-allowed}
+
+/* ---- layout ---- */
+.wrap{max-width:840px;margin:0 auto;padding:0 16px;padding-block:26px 72px}
+.intro h1{font-size:clamp(26px,5.4vw,36px);font-weight:700;letter-spacing:-.025em;line-height:1.08}
+.intro p{color:var(--muted);margin:10px 0 0;font-size:15px;max-width:60ch}
+
+/* ---- record ---- */
+.record{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;margin:20px 0 22px}
+.record-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.record-label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass)}
+.record-phase{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted)}
+.track{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.fill{height:100%;background:var(--signal);border-radius:4px;transition:width 280ms ease}
+.record-count{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}
+
+/* ---- phase cards ---- */
+.card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:13px;overflow:hidden}
+.card.done{border-color:var(--signal)}
+.card.locked .card-head{opacity:.62}
+.card-head{display:flex;align-items:baseline;gap:11px;width:100%;text-align:left;background:none;border:none;padding:14px 15px;cursor:pointer}
+.card-num{font-family:var(--mono);font-size:11.5px;color:var(--brass);letter-spacing:.1em;flex:none;padding-top:2px}
+.card-title{font-family:var(--display);font-size:17.5px;font-weight:600;flex:1 1 auto;line-height:1.22;letter-spacing:-.012em;min-width:0}
+.card-title .tag{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);border:1px solid var(--line-strong);border-radius:3px;padding:2px 5px;margin-left:7px;vertical-align:2px;white-space:nowrap;text-transform:uppercase}
+.card-count{font-family:var(--mono);font-size:11.5px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums;padding-top:3px}
+.card-count.complete{color:var(--signal)}
+.card-body{padding:0 15px 20px;display:flex;flex-direction:column;gap:14px}
+.card-why{font-size:14.5px;line-height:1.58;color:var(--ink);margin:0;max-width:62ch}
+.card-why + .card-why{margin-top:-4px}
+.locknote{font-family:var(--mono);font-size:11.5px;color:var(--warn);background:var(--warn-soft);border-radius:4px;padding:7px 10px}
+
+.stamp{position:absolute;top:11px;right:13px;transform:rotate(-7deg);border:2px solid var(--signal);border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--signal);pointer-events:none;animation:stampIn 240ms cubic-bezier(.2,1.4,.5,1) both}
+@keyframes stampIn{from{transform:rotate(-7deg) scale(1.5);opacity:0}to{transform:rotate(-7deg) scale(1);opacity:1}}
+
+/* ---- tasks ---- */
+.tasks{display:flex;flex-direction:column}
+.task-row{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;background:none;border:none;padding:6px 0;cursor:pointer}
+.task-box{width:17px;height:17px;flex:none;margin-top:2px;border-radius:3px;border:1.5px solid var(--line-strong);font-family:var(--mono);font-size:11px;line-height:14px;text-align:center;color:transparent}
+.task-box.on{border-color:var(--signal);background:var(--signal);color:var(--surface)}
+:root[data-theme="dark"] .task-box.on{color:#08201E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .task-box.on{color:#08201E}}
+.task-label{font-size:14.5px;line-height:1.45}
+.task-label.on{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line-strong)}
+.task-sub{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
+.tasks-group{border-left:2px solid var(--line);padding-left:12px;margin-left:2px}
+.tasks-group-label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--brass);margin:10px 0 2px;text-transform:uppercase}
+
+/* ---- see also ---- */
+.seealso{background:var(--surface-2);border-radius:5px;padding:11px 12px}
+.seealso-label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+.seealso-item{font-size:13.5px;line-height:1.7}
+.seealso-item .note{color:var(--muted)}
+
+/* ---- code ---- */
+.codeblock{position:relative;background:var(--code-bg);border-radius:5px;overflow:hidden}
+.codeblock pre{margin:0;padding:13px 14px;padding-right:74px;font-family:var(--mono);font-size:12.3px;line-height:1.65;color:var(--code-ink);overflow-x:auto;white-space:pre}
+.codeblock .cp{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--code-ink);border-radius:4px;padding:3px 9px;font-size:11.5px;font-family:var(--mono);cursor:pointer}
+.codeblock .cp:hover{background:rgba(255,255,255,.2)}
+
+/* ---- fields ---- */
+.grid2{display:grid;grid-template-columns:1fr;gap:11px}
+@media (min-width:560px){.grid2{grid-template-columns:1fr 1fr}}
+.grid3{display:grid;grid-template-columns:1fr;gap:11px}
+@media (min-width:600px){.grid3{grid-template-columns:1fr 1fr 1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.field input,.field select{background:var(--raised);border:1px solid var(--line-strong);border-radius:4px;padding:8px 10px;font-size:14px;width:100%;min-width:0}
+.field.mono input{font-family:var(--mono);font-size:13px}
+.field input::placeholder{color:var(--muted);opacity:.6}
+
+/* ---- crew ---- */
+.agent{border:1px solid var(--line);border-radius:5px;background:var(--surface-2);padding:12px;display:flex;flex-direction:column;gap:10px}
+.agent.coord{border-left:3px solid var(--brass)}
+.agent-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tagpill{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2.5px 7px;border-radius:3px;background:var(--brass-soft);color:var(--brass);white-space:nowrap}
+.tagpill.worker{background:var(--signal-soft);color:var(--signal)}
+.agent-top .addr{font-family:var(--mono);font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.agent-top .spacer{margin-left:auto}
+.iconbtn{border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;border-radius:4px;padding:3px 7px;font-size:12px}
+.iconbtn:hover{color:var(--warn);border-color:var(--line-strong)}
+.rowbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ---- switches ---- */
+.sw{display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:3px 0}
+.sw input{margin:2px 0 0;accent-color:var(--brass);width:16px;height:16px;flex:none}
+.sw b{display:block;font-size:13.5px;font-weight:600}
+.sw small{color:var(--muted);font-size:12px}
+
+/* ---- note ---- */
+.note{border-left:2px solid var(--warn);background:var(--warn-soft);padding:10px 12px;border-radius:0 4px 4px 0;font-size:13.5px;max-width:62ch}
+.note.good{border-color:var(--signal);background:var(--signal-soft)}
+.note b{font-weight:600}
+
+/* ---- output ---- */
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);margin:0 -15px;padding:0 9px}
+.tab{border:none;background:transparent;padding:10px 11px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--brass);font-weight:600}
+.outbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.outbar .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.outbar .spacer{margin-left:auto}
+pre.out{margin:0;padding:14px;font-family:var(--mono);font-size:12.2px;line-height:1.62;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-height:440px;overflow-y:auto;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;tab-size:2}
+.ready{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11.5px;font-family:var(--mono);padding:3px 9px;border-radius:3px;border:1px solid var(--line-strong);color:var(--muted);background:var(--raised)}
+.chip.ok{background:var(--signal-soft);border-color:transparent;color:var(--signal)}
+.chip.gap{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+
+/* ---- presets ---- */
+.preset{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2)}
+.preset b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preset small{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
+.preset .spacer{margin-left:auto}
+.empty{font-size:13px;color:var(--muted);font-style:italic;margin:0}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:5px;font-size:13.5px;z-index:90;max-width:calc(100vw - 32px)}
+footer.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--line-strong);flex:none}
+.dot.live{background:var(--signal)}
+.resetbtn{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 11px;cursor:pointer;margin-left:auto}
+.resetbtn.confirm{color:#fff;background:var(--warn);border-color:var(--warn)}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <a class="btn ghost tiny" href="../../" style="text-decoration:none;color:var(--ink);">← Workshop</a>
+    <div class="mark"><b>Fleet One-Shot Builder</b><span id="markMeta">ready</span></div>
+    <div class="mast-actions">
+      <button class="btn ghost tiny" id="themeBtn" type="button">Theme</button>
+      <button class="btn primary tiny" id="jumpBtn" type="button">Next step</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="intro">
+    <h1>Commission a crew, one phase at a time.</h1>
+    <p>Every phase in order, from naming your agents to pasting the finished prompt into Claude Code on the VPS. Each phase says why it matters, gives you the exact clicks and commands, and won't let you skate past a gate that costs real money. Tick as you go — your place is kept.</p>
+  </div>
+
+  <section class="record" aria-label="Overall progress">
+    <div class="record-top">
+      <span class="record-label" id="recLabel">Commissioning record</span>
+      <span class="record-phase" id="recPhase">PHASE 1 OF 9</span>
+    </div>
+    <div class="track"><div class="fill" id="recFill" style="width:0%"></div></div>
+    <div class="record-count" id="recCount">0 / 0 steps</div>
+  </section>
+
+  <div id="phases"></div>
+
+  <footer class="foot">
+    <span class="dot" id="liveDot"></span>
+    <span id="footNote">Progress is kept in this browser.</span>
+    <button class="resetbtn" id="resetBtn" type="button">RESET PROGRESS</button>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var TOS_URL = "https://claude.ai/artifact/Bvgf4gvoprbNkCntCFkdsQ";
+  var PRIV_URL = "https://claude.ai/artifact/1wzSLg9VwscnedroYwproZ";
+
+  var uid = 0;
+  function nid(){ uid += 1; return "a" + uid + Math.random().toString(36).slice(2,6); }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+  /* ================= state ================= */
+  var state = {
+    tz:"America/New_York", tier:"Max 5x", base:"~/fleet", briefTime:"07:45",
+    plan:"Hetzner CX33", ubuntu:"26.04", vpsIp:"",
+    guildId:"", briefsCh:"", escCh:"",
+    opts:{ vault:true, phase2:true, wrapper:true, nametrigger:true, cache:true },
+    agents:[
+      { id:nid(), role:"Coordinator", name:"Atlas", owns:"dispatch, the task board, the daily brief",
+        persona:"calm bridge officer; never flustered, always has the status", catchphrase:"Logged. Dispatching.", channel:"" },
+      { id:nid(), role:"Researcher", name:"Scout", owns:"research, sourcing, price comps",
+        persona:"restless field scout; brings receipts, flags what it could not verify", catchphrase:"Three sources or it didn't happen.", channel:"" },
+      { id:nid(), role:"Builder", name:"Forge", owns:"producing things \u2014 listings, content, code",
+        persona:"blunt shop foreman; ships drafts, hates ceremony", catchphrase:"Rough cut's on the bench.", channel:"" },
+      { id:nid(), role:"Ops / Finance", name:"Ledger", owns:"tracking, spreadsheets, follow-ups",
+        persona:"precise bookkeeper; every number traced to a real file", catchphrase:"If it isn't recorded, it didn't happen.", channel:"" }
+    ]
+  };
+  var checked = {};
+  var stamps = {};
+  var open = {};
+  var activePane = "prompt";
+
+  var TZS = ["America/New_York","America/Chicago","America/Denver","America/Phoenix","America/Los_Angeles","America/Anchorage","Pacific/Honolulu","America/Toronto","America/Mexico_City","America/Sao_Paulo","Europe/London","Europe/Dublin","Europe/Lisbon","Europe/Paris","Europe/Berlin","Europe/Madrid","Europe/Rome","Europe/Warsaw","Europe/Athens","Europe/Kyiv","Africa/Lagos","Africa/Johannesburg","Africa/Nairobi","Asia/Dubai","Asia/Karachi","Asia/Kolkata","Asia/Bangkok","Asia/Singapore","Asia/Hong_Kong","Asia/Shanghai","Asia/Tokyo","Asia/Seoul","Australia/Perth","Australia/Sydney","Pacific/Auckland","UTC"];
+
+  var OPTS = [
+    { key:"vault",       title:"Vault sync to your desktop",      desc:"Syncthing on the VPS + Obsidian on Windows, over an SSH tunnel. Adds a phase." },
+    { key:"nametrigger", title:"Bare-name triggering",             desc:"Typing \u201cscout \u2026\u201d works with no @mention, and shared channels don't get bot pile-ons." },
+    { key:"cache",       title:"Long prompt cache",                desc:"cacheRetention: long \u2014 stretches the subscription quota a long way." },
+    { key:"wrapper",     title:"--tools guard wrapper",            desc:"A /usr/bin/openclaw wrapper that hard-blocks the flag that fails 100% of the time." },
+    { key:"phase2",      title:"Phase 2 brief (queue + dashboard)",desc:"Appends the later-build section: task queue, spend caps, loopback dashboard." }
+  ];
+
+  /* ================= helpers ================= */
+  function $(id){ return document.getElementById(id); }
+  function el(tag, cls, text){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function slug(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,""); }
+  function chan(a){ return a.channel ? slug(a.channel) : (slug(a.name)||"agent") + "-chat"; }
+  function aid(a){ return slug(a.name) || "agent"; }
+  function coord(){ return state.agents[0]; }
+  function workers(){ return state.agents.slice(1); }
+  function cronExpr(){
+    var t = (state.briefTime||"07:45").split(":");
+    var h = parseInt(t[0],10), m = parseInt(t[1],10);
+    if (isNaN(h)) h = 7;
+    if (isNaN(m)) m = 45;
+    return m + " " + h + " * * *";
+  }
+  function ip(){ return state.vpsIp.trim() || "YOUR.SERVER.IP"; }
+  function stampDate(){
+    var M = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    var d = new Date();
+    return M[d.getMonth()] + " " + d.getDate();
+  }
+
+  /* ================= phase definitions ================= */
+  function phaseDefs(){
+    var c = coord(), ws = workers();
+    var P = [];
+
+    P.push({
+      id:"p0", num:"01", title:"Name the crew", body:"crew",
+      why:"Everything downstream is generated from these names \u2014 the channels you create, the bot applications you register, the config on the server, each agent's soul file. Settle it here and you never re-type it. Two to five workers is the sweet spot: fewer and the coordinator has nothing to dispatch, more and your Discord gets noisy.",
+      tasks:[
+        { id:"p0-names", label:"Every agent has a name you'd actually type", sub:"You'll type these constantly \u2014 short and distinct beats clever." },
+        { id:"p0-owns",  label:"Each worker owns exactly one project", sub:"Overlapping ownership is how two agents do the same job twice." },
+        { id:"p0-persona", label:"Every agent has a one-line persona and a catchphrase", sub:"This is what makes a reply recognisable at a glance in a busy channel." },
+        { id:"p0-env", label:"Timezone, base folder, and Claude tier set below" }
+      ]
+    });
+
+    P.push({
+      id:"p1", num:"02", title:"The shopping list", tag:"~$140/mo",
+      why:"Two paid things and two free ones. The Claude subscription is the only AI bill you will have \u2014 no API keys, no per-token billing anywhere in this build. If a step ever asks you for an API key, something has gone wrong.",
+      tasks:[
+        { id:"p1-max",   label:"Claude Max 5x subscription active", sub:"~$100/mo. Pro technically works but will feel tight with four agents." },
+        { id:"p1-disc",  label:"Discord account ready", sub:"Free. Bots are free to create." },
+        { id:"p1-desk",  label:"Obsidian + SyncTrayzor installed on Windows", sub:"Only needed if you want the vault on your desktop \u2014 the commands are below.", optional:true },
+        { id:"p1-budget",label:"You're okay with ~$9/mo for the server, billed hourly" }
+      ],
+      commands:[{ label:"On your Windows desktop", code:"winget install Obsidian.Obsidian\nwinget install SyncTrayzor.SyncTrayzor" }],
+      links:[
+        { label:"console.hetzner.com", url:"https://console.hetzner.com", note:"where the server comes from" },
+        { label:"discord.com/developers/applications", url:"https://discord.com/developers/applications", note:"where the bots come from" }
+      ]
+    });
+
+    var chanTasks = [];
+    state.agents.forEach(function(a,i){
+      chanTasks.push({ id:"p2-chan-" + i, label:"Create #" + chan(a),
+        sub:(i===0 ? "Your main line. " : "") + "Anything typed here goes to " + (a.name||"this agent") + " \u2014 no @ needed." });
+    });
+    chanTasks.push({ id:"p2-chan-briefs", label:"Create #daily-briefs", sub:(c.name||"The coordinator") + "'s morning report lands here." });
+    chanTasks.push({ id:"p2-chan-esc", label:"Create #escalations", sub:"Where agents post decisions that need you." });
+
+    P.push({
+      id:"p2", num:"03", title:"Server and channels", body:"discord",
+      why:"The fleet needs a Discord server that belongs to you. Channel labels are not decoration \u2014 an agent's channel is its address, which is why you'll never have to @-mention anyone. In the Discord app: the + at the bottom of the server list \u2192 Create My Own \u2192 For me and my friends.",
+      tasks:[{ id:"p2-server", label:"Created your own Discord server", sub:"Name it anything \u2014 \u201cMy Fleet\u201d works." }]
+        .concat(chanTasks)
+        .concat([
+          { id:"p2-devmode", label:"Developer Mode ON, then right-click \u2192 Copy ID", sub:"Discord Settings \u2192 Advanced \u2192 Developer Mode. Paste the three IDs below." }
+        ])
+    });
+
+    P.push({
+      id:"p3legal", num:"04", title:"Legal pages", tag:"already done",
+      why:"Discord's developer portal will not let an application through without a Terms of Service URL and a Privacy Policy URL. This used to be the step that broke the one-shot \u2014 you had to go make two web pages before you could make a bot. They already exist, published under Scarlet's Workshop LLC, and one pair covers every bot you'll ever register. Copy the two links and keep them on the clipboard for the next phase.",
+      body:"legal",
+      tasks:[
+        { id:"p3l-share", label:"Set both pages to \u201canyone with the link\u201d", sub:"Open each page \u2192 share menu \u2192 anyone with the link. Discord's reviewer has to be able to load them." },
+        { id:"p3l-read",  label:"Skimmed both pages and they describe your setup", sub:"They say: private bots, message content goes to Anthropic and Discord, nothing sold, remove the bot to stop collection." }
+      ]
+    });
+
+    var botTasks = [];
+    state.agents.forEach(function(a,i){
+      var nm = a.name || ("Agent " + (i+1));
+      botTasks.push({ group:(a.role||"Agent") + " \u2014 " + nm, items:[
+        { id:"p3-new-" + i,    label:"New Application named \u201c" + (a.role||"Agent") + " - " + nm + "\u201d", sub:"Named this way it reads nicely in the member list." },
+        { id:"p3-urls-" + i,   label:"Pasted the ToS + Privacy URLs \u2192 Save Changes" },
+        { id:"p3-intents-" + i,label:"All three Privileged Gateway Intents ON", sub:"Presence, Server Members, Message Content. Without Message Content the agent is deaf." },
+        { id:"p3-invite-" + i, label:"OAuth2 \u2192 URL Generator \u2192 invited to your server", sub:"Scope bot; permissions View Channels, Send Messages, Read Message History. The Generated URL is at the very bottom of the page." },
+        { id:"p3-verify-" + i, label:i===0 ? "Passed the Stripe ID check" : "Clicked through verification (no ID this time)",
+          sub:i===0 ? "Run by Stripe, Discord's verification partner \u2014 legitimate. Government ID + phone, usually a QR code. Only this first bot asks for the ID." : "Every later bot still has a verification step but never asks for the ID again." },
+        { id:"p3-token-" + i,  label:"Reset Token \u2192 copied it somewhere safe", sub:"Shown once. Lost it? Reset again \u2014 the old one dies. It goes into a hidden prompt on the VPS, nowhere else." }
+      ]});
+    });
+
+    P.push({
+      id:"p3", num:"05", title:"One bot per agent", tag:state.agents.length + " bots",
+      why:"This is the long one \u2014 about 15 minutes per bot, and the first bot is the slowest because it carries the identity check. Work down one agent at a time rather than doing each step across all bots; it's much harder to lose your place. If verification sits on \u201cpending\u201d, keep going and come back \u2014 it usually clears in minutes.",
+      groups:botTasks,
+      note:{ kind:"warn", html:"<b>Never paste a token into this page, a chat, a Discord message, or a screenshot.</b> A leaked token means a stranger controls your bot. The only place a token goes is the hidden <code>read -rsp</code> prompt on the VPS when Claude asks for it." }
+    });
+
+    P.push({
+      id:"p4", num:"06", title:"Buy the server", body:"server", tag:"~$8.99/mo",
+      why:"CX33 is the floor, not a suggestion. The cheaper tiers look tempting but don't have the memory to run Claude Code plus the agent gateway \u2014 sessions crawl, then die out of memory, and you lose a day debugging a box that was never big enough. The CX23 row directly above it, with 4 GB, is the specific trap.",
+      tasks:[
+        { id:"p4-acct",  label:"Hetzner account created and payment added", sub:"New accounts are sometimes asked for ID. Normal \u2014 don't make a second account, that flags both." },
+        { id:"p4-type",  label:"Cost-Optimized card \u2192 x86 (Intel/AMD) \u2192 CX33 row", sub:"4 vCPU / 8 GB / 80 GB. \u201cLimited availability\u201d is fine. Not Arm64." },
+        { id:"p4-loc",   label:"Found CX33 in stock", sub:"Greyed out? Change the location/country at the top of the page \u2014 availability is per-datacenter, not global." },
+        { id:"p4-image", label:"Image: Ubuntu " + state.ubuntu + " (newest offered)" },
+        { id:"p4-ssh",   label:"SSH key added, or password email received", sub:"With a key selected Hetzner sends NO password email \u2014 don't wait for one. Only the .pub line ever leaves your computer." },
+        { id:"p4-run",   label:"Status is Running and you have the IPv4", sub:"Paste it below so the commands in the next phases fill themselves in." }
+      ],
+      commands:[{ label:"Making a key on your own computer (optional)", code:"ssh-keygen -t ed25519\n# Windows: Get-Content $env:USERPROFILE\\.ssh\\id_ed25519.pub\n# Mac:     cat ~/.ssh/id_ed25519.pub" }]
+    });
+
+    P.push({
+      id:"p5", num:"07", title:"Open the door", body:"commands",
+      why:"SSH is just a remote keyboard: a text window on your computer where everything you type runs on the server instead. Two things look alarming and aren't \u2014 the first-connection fingerprint question (type yes), and the password prompt showing nothing at all while you type (that's deliberate). Paste into a terminal with a right-click, not Ctrl+V.",
+      tasks:[
+        { id:"p5-ssh",   label:"Connected \u2014 the prompt says root@your-server" },
+        { id:"p5-node",  label:"Node installed and the version is 22.5 or higher", sub:"OpenClaw refuses Node 20, and node:sqlite needs 22.5+." },
+        { id:"p5-cc",    label:"Claude Code installed" },
+        { id:"p5-login", label:"Logged in through the browser with your " + state.tier + " account", sub:"It shows a link, you open it in your normal browser. If anything asks for an API key, stop." }
+      ],
+      commands:[
+        { label:"1 \u00b7 Connect", code:"ssh root@" + ip() },
+        { label:"2 \u00b7 Install Node, then Claude Code", code:"curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && apt-get install -y nodejs\nnode --version\nnpm install -g @anthropic-ai/claude-code" },
+        { label:"3 \u00b7 Start it", code:"claude" }
+      ],
+      note:{ kind:"good", html:"Internet drops mid-build? Reconnect with the same <code>ssh</code> command and run <code>claude --continue</code> \u2014 the conversation picks up exactly where it left off." }
+    });
+
+    P.push({
+      id:"p6", num:"08", title:"Hand over the prompt", body:"prompt", tag:"the one shot",
+      why:"Everything above was preparation for this one paste. The prompt below has your roster baked in, so Claude skips the interview entirely and goes straight to building \u2014 and it carries every correction that cost someone real debugging time or real money. From here Claude drives, pulling you back for exactly three things: the browser login, pasting bot tokens into hidden prompts, and witnessing the final tests.",
+      tasks:[
+        { id:"p6-paste", label:"Pasted the prompt into the Claude session on the VPS" },
+        { id:"p6-tokens",label:"Fed each bot token into its hidden prompt when asked" },
+        { id:"p6-oauth", label:"openclaw models auth list says anthropic/oauth", sub:"If it says api_key you are paying per token. Stop and fix before anything else." },
+        { id:"p6-fire",  label:"Every agent test-fires with provider claude-cli" },
+        { id:"p6-name",  label:"A bare agent name gets a reply \u2014 and only one agent answers" },
+        { id:"p6-cron",  label:"Daily brief cron exists and you approved arming it" }
+      ]
+    });
+
+    if (state.opts.vault){
+      P.push({
+        id:"p7", num:"09", title:"Sync the vault", tag:"optional",
+        why:"Every agent writes its work into a shared Vault folder on the VPS. Syncthing mirrors that folder to your desktop and Obsidian turns it into a browsable notebook \u2014 so you read research, deliverables and learnings from your desk, and editing a task file locally sends it straight back to the fleet.",
+        tasks:[
+          { id:"p7-inst",  label:"Syncthing installed on the VPS (Claude does this)" },
+          { id:"p7-tunnel",label:"Reached the panel at localhost:8384 through the tunnel", sub:"Never expose port 8384 publicly." },
+          { id:"p7-pair",  label:"Both machines added each other as a Remote Device", sub:"Actions \u2192 Show ID on each side. Both sides must accept." },
+          { id:"p7-share", label:"Vault folder shared and accepted into a desktop folder" },
+          { id:"p7-vault", label:"Obsidian: Open folder as vault \u2192 that folder" },
+          { id:"p7-test",  label:"Test file made on the VPS appeared in Obsidian" }
+        ],
+        commands:[{ label:"The tunnel, from your own computer", code:"ssh -L 8384:127.0.0.1:8384 root@" + ip() + "\n# then open http://localhost:8384" }]
+      });
+    }
+
+    P.push({
+      id:"p8", num:state.opts.vault ? "10" : "09", title:"Tune first, build later", tag:"week one",
+      why:"Resist adding machinery on day one. Spend the first week just talking to your agents: give real tasks through " + (c.name||"the coordinator") + ", correct them when they miss, and watch the lessons land in each agent's LEARNINGS.md. A fleet fine-tuned to how you work is worth more than any dashboard. The ops card below is the thing to keep open in week one.",
+      body:"ops",
+      tasks:[
+        { id:"p8-task",  label:"Ran one real task end to end, coordinator \u2192 worker", sub:"With the deliverable on disk as proof \u2014 not just a reply that says it's done." },
+        { id:"p8-brief", label:"A daily brief actually arrived in #daily-briefs" },
+        { id:"p8-learn", label:"Corrected an agent and saw it land in LEARNINGS.md" },
+        { id:"p8-secure",label:"Nothing on the server listens publicly except SSH" }
+      ]
+    });
+
+    return P;
+  }
+
+  var PHASES = [];
+
+  function allTaskIds(p){
+    var ids = [];
+    (p.tasks||[]).forEach(function(t){ ids.push(t.id); });
+    (p.groups||[]).forEach(function(g){ g.items.forEach(function(t){ ids.push(t.id); }); });
+    return ids;
+  }
+  function phaseDone(p){
+    var ids = allTaskIds(p);
+    return ids.length > 0 && ids.every(function(i){ return !!checked[i]; });
+  }
+  function phaseCount(p){
+    var ids = allTaskIds(p);
+    return { done: ids.filter(function(i){ return !!checked[i]; }).length, total: ids.length };
+  }
+
+  /* ================= generators ================= */
+  function buildPrompt(){
+    var L = [], c = coord(), ws = workers(), base = state.base || "~/fleet";
+    L.push("# ULTIMATE ONE-SHOT \u2014 " + (c.name||"Fleet") + "'s Discord agent fleet");
+    L.push("");
+    L.push("You are setting up a production multi-agent Discord fleet on this VPS, modeled on two proven");
+    L.push("working systems. Follow these instructions EXACTLY \u2014 every gotcha below was hit in real");
+    L.push("production and the fix is encoded here. Do not improvise around them.");
+    L.push("");
+    L.push("**Precedence, highest first: the live server > this prompt > anything you remember from");
+    L.push("training.** Where a command errors differently than described, trust the CLI's `--help` over");
+    L.push("this document (corrections were verified against OpenClaw 2026.6.x \u2014 a newer release may have");
+    L.push("renamed or fixed things).");
+    L.push("");
+    L.push("## NON-NEGOTIABLE DESIGN RULES");
+    L.push("");
+    L.push("1. **Subscription-only LLM access.** Everything runs on my Claude " + state.tier + " subscription via the");
+    L.push("   `claude-cli` provider. NO API keys, NO per-token billing. If a step seems to need an API key,");
+    L.push("   you have taken a wrong turn \u2014 stop and tell me.");
+    L.push("2. **One coordinator, " + ws.length + " worker" + (ws.length===1?"":"s") + ".** I talk to " + (c.name||"the coordinator") + "; " + (c.name||"it") + " dispatches the workers.");
+    L.push("3. **The crew is already named** (roster below). Never substitute placeholder names, and never");
+    L.push("   reuse agent or brand names from any source system you have seen.");
+    L.push("4. **Verify every step with evidence** \u2014 real command output, a file on disk, a test fire's JSON");
+    L.push("   \u2014 before moving on. Never mark a step done from intent.");
+    L.push("5. **Auto mode:** do routine work (file edits, installs, service restarts) without asking. STOP and");
+    L.push("   ask me before: anything that costs money, anything destructive, anything outward-facing, and");
+    L.push("   before enabling any autonomous cron.");
+    L.push("6. **NEVER paste a credential into chat.** Tokens go into `read -rsp` prompts or mode-600 files.");
+    L.push("   If you accidentally print one, say so immediately and tell me how to rotate it.");
+    L.push("");
+    L.push("## STEP 0 \u2014 THE ROSTER (already decided \u2014 do not re-interview me)");
+    L.push("");
+    L.push("| Agent id | Name | Role | Owns | Channel |");
+    L.push("|---|---|---|---|---|");
+    state.agents.forEach(function(a,i){
+      L.push("| `" + aid(a) + "` | " + (a.name||"?") + " | " + (i===0?"Coordinator":a.role) + " | " + (a.owns||"\u2014") + " | `#" + chan(a) + "` |");
+    });
+    L.push("");
+    L.push("Personas \u2014 carry the spirit of these into each SOUL.md:");
+    L.push("");
+    state.agents.forEach(function(a){
+      L.push("- **" + (a.name||"?") + "** \u2014 " + (a.persona || "no persona given; ask me for one before writing its soul file") +
+        (a.catchphrase ? "  \n  Catchphrase: \u201c" + a.catchphrase + "\u201d" : ""));
+    });
+    L.push("");
+    L.push("Environment: timezone **" + state.tz + "** \u00b7 base folder **`" + base + "`** \u00b7 Claude **" + state.tier + "**" +
+      (state.tier === "Pro" ? " (Pro \u2014 warn me about quota before arming the daily cron)" : ""));
+    L.push("");
+    L.push("Discord IDs: guild `" + (state.guildId||"<ask me>") + "` \u00b7 #daily-briefs `" + (state.briefsCh||"<ask me>") +
+      "` \u00b7 #escalations `" + (state.escCh||"<ask me>") + "`");
+    L.push("");
+    L.push("Ask me only for what is missing above, plus each bot token \u2014 one `read -rsp` prompt at a time,");
+    L.push("labeled with the agent's name. Nothing else needs interviewing.");
+    L.push("");
+    L.push("## STEP 1 \u2014 DISCORD (already done by me; verify, don't redo)");
+    L.push("");
+    L.push("The server, the " + state.agents.length + " agent channels above, `#daily-briefs`, `#escalations`, and one verified bot");
+    L.push("per agent all exist and are invited with View Channels + Send Messages + Read Message History,");
+    L.push("with all three Privileged Gateway Intents on. Terms of Service and Privacy Policy URLs are filed");
+    L.push("on every application. If anything is missing you will find out at STEP 7 \u2014 tell me then rather");
+    L.push("than guessing.");
+    L.push("");
+    L.push("## STEP 2 \u2014 INSTALL OPENCLAW + CLAUDE CODE");
+    L.push("");
+    L.push("```bash");
+    L.push("# Node 22.5+ REQUIRED (OpenClaw refuses 20; node:sqlite needs 22.5+)");
+    L.push("curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && apt-get install -y nodejs");
+    L.push("node --version                       # verify >= 22.5 BEFORE anything else");
+    L.push("npm install -g openclaw @anthropic-ai/claude-code");
+    L.push("openclaw --version && claude --version");
+    L.push("loginctl enable-linger root          # or the gateway dies when SSH closes");
+    L.push("```");
+    L.push("");
+    L.push("Discord support: try `openclaw plugins install @openclaw/discord`. On some versions it is an");
+    L.push("external plugin; on others it is bundled (\u201cnot found\u201d / \u201calready enabled\u201d \u2014 then skip). Check");
+    L.push("`openclaw plugins list` and trust the CLI. Related trap: `claude-cli` is NOT a plugin \u2014 it is a");
+    L.push("backend of the bundled `anthropic` plugin. Never run `openclaw plugins enable claude-cli`.");
+    L.push("");
+    L.push("## STEP 3 \u2014 SUBSCRIPTION AUTH (the critical part)");
+    L.push("");
+    L.push("**Preferred path (no browser needed on this box):**");
+    L.push("");
+    L.push("```bash");
+    L.push("script -qec \"openclaw models auth login --provider anthropic --method cli --set-default\" /dev/null");
+    L.push("```");
+    L.push("");
+    L.push("The method id is `cli` (`claude-cli` as a choiceId is deprecated and errors). It needs a TTY \u2014");
+    L.push("that is what the `script` wrapper is for.");
+    L.push("");
+    L.push("**Fallback:** I run `claude setup-token` on a machine with a browser, log in with my " + state.tier);
+    L.push("account, and hand you a token starting `sk-ant-oat01-`. Then:");
+    L.push("");
+    L.push("```bash");
+    L.push("openclaw models auth paste-token --provider anthropic --expires-in 365d");
+    L.push("```");
+    L.push("");
+    L.push("Do NOT use `models auth setup-token` inside OpenClaw \u2014 it hangs on stdin.");
+    L.push("");
+    L.push("**Verify:** `openclaw models auth list` must show `anthropic/oauth` (claude-cli). If it says");
+    L.push("`api_key`, I am being billed per token \u2014 stop and fix before continuing.");
+    L.push("");
+    L.push("**The three Linux gotchas that fail SILENTLY if skipped:**");
+    L.push("");
+    L.push("1. **Credentials file for the `claude` binary.** OpenClaw spawns real `claude` sessions and the");
+    L.push("   binary needs its own login. Write `/root/.claude/.credentials.json` (mode 600) with a script");
+    L.push("   that reads the token from the auth store \u2014 never echo it:");
+    L.push("");
+    L.push("   ```json");
+    L.push("   {\"claudeAiOauth\": {\"accessToken\": \"<sk-ant-oat01 token>\", \"refreshToken\": null,");
+    L.push("    \"expiresAt\": <epoch ms>, \"scopes\": [\"user:inference\",\"user:profile\"],");
+    L.push("    \"subscriptionType\": \"max\"}}");
+    L.push("   ```");
+    L.push("");
+    L.push("2. **IS_SANDBOX=1 \u2014 as a systemd DROP-IN, not just openclaw.json.** Root refuses");
+    L.push("   permission-skipping without it and claude-cli silently falls back. A drop-in survives");
+    L.push("   `gateway install` re-runs; editing the unit file does not:");
+    L.push("");
+    L.push("   ```bash");
+    L.push("   mkdir -p ~/.config/systemd/user/openclaw-gateway.service.d");
+    L.push("   printf '[Service]\\nEnvironment=\"IS_SANDBOX=1\"\\n' \\");
+    L.push("     > ~/.config/systemd/user/openclaw-gateway.service.d/10-sandbox.conf");
+    L.push("   ```");
+    L.push("");
+    L.push("   Also put `IS_SANDBOX: \"1\"` in the `env` section of `~/.openclaw/openclaw.json`. Once the");
+    L.push("   gateway runs, verify it landed in the PROCESS, not just the file:");
+    L.push("");
+    L.push("   ```bash");
+    L.push("   PID=$(systemctl --user show -p MainPID --value openclaw-gateway)");
+    L.push("   tr '\\0' '\\n' < /proc/$PID/environ | grep IS_SANDBOX   # must print IS_SANDBOX=1");
+    L.push("   ```");
+    L.push("");
+    L.push("3. **Per-agent auth replication.** Auth lands in ONE agent's store only. After creating all " + state.agents.length);
+    L.push("   agents (step 4), copy the auth row to each of the others:");
+    L.push("");
+    L.push("   ```bash");
+    L.push("   sqlite3 ~/.openclaw/agents/<agent>/agent/openclaw-agent.sqlite \\");
+    L.push("     \"ATTACH '~/.openclaw/agents/<source>/agent/openclaw-agent.sqlite' AS src;");
+    L.push("      INSERT OR REPLACE INTO auth_profile_store SELECT * FROM src.auth_profile_store");
+    L.push("      WHERE store_key='primary'; DETACH src;\"");
+    L.push("   # if an agent has no sqlite yet: copy the whole file, then");
+    L.push("   # UPDATE schema_meta SET agent_id='<agent>';");
+    L.push("   ```");
+    L.push("");
+    L.push("   Agents needing the copy: " + state.agents.map(function(a){ return "`" + aid(a) + "`"; }).join(", ") + ".");
+    L.push("");
+    L.push("**NEVER run `openclaw doctor --force`** \u2014 it deletes the IS_SANDBOX drop-in and silently moves");
+    L.push("the fleet to per-token billing. Plain `openclaw doctor --fix` is the restore tool.");
+    L.push("");
+    L.push("## STEP 4 \u2014 CONFIGURE THE FLEET (`~/.openclaw/openclaw.json`, mode 600)");
+    L.push("");
+    L.push("Check `openclaw models list` for current model ids \u2014 don't trust hardcoded strings. Both primary");
+    L.push("and fallback stay on the subscription; no third-party fallback.");
+    L.push("");
+    L.push("```jsonc");
+    L.push("// agents.list \u2014 one entry per agent");
+    state.agents.forEach(function(a){
+      L.push("{ \"id\": \"" + aid(a) + "\", \"name\": \"" + (a.name||"?") + "\",");
+      L.push("  \"workspace\": \"~/.openclaw/workspace-" + aid(a) + "\",");
+      L.push("  \"model\": { \"primary\": \"claude-cli/claude-sonnet-5\",");
+      L.push("              \"fallbacks\": [\"claude-cli/claude-haiku-4-5\"] } },");
+    });
+    L.push("```");
+    L.push("");
+    L.push("- `bindings` += `{\"agentId\":\"<id>\", \"match\":{\"channel\":\"discord\",\"accountId\":\"<id>\"}}` for each.");
+    L.push("- `channels.discord.accounts` += `\"<id>\": {\"token\":\"<from read -rsp>\",\"dmPolicy\":\"disabled\"}`.");
+    L.push("- `tools.agentToAgent.allow` += every agent id \u2014 " + (c.name||"the coordinator") + " must reach " +
+      (ws.length ? ws.map(function(a){ return a.name||"?"; }).join(", ") : "its workers") + ".");
+    if (state.opts.cache){
+      L.push("- `agents.defaults.params.cacheRetention: \"long\"` \u2014 1-hour prompt cache; stretches the");
+      L.push("  subscription quota massively.");
+    }
+    L.push("");
+    if (state.opts.nametrigger){
+      L.push("**Name-triggering instead of forced @mentions.** Do NOT ship `requireMention: true`. I want to");
+      L.push("type a bare name \u2014 \u201c" + ((ws[0] && ws[0].name) ? ws[0].name.toLowerCase() : "scout") + " can you pull comps on this\u201d \u2014 anywhere in a message:");
+      L.push("");
+      L.push("- In each agent's OWN channel, set `requireMention: false` for that account \u2014 the channel is");
+      L.push("  the address, so every message in it is for that agent.");
+      L.push("- In `#daily-briefs` and `#escalations`, configure the account's mention/trigger patterns so a");
+      L.push("  case-insensitive match of the agent's name anywhere in the message counts as addressing it");
+      L.push("  (check `openclaw config schema` / `--help` for the exact key on the installed version \u2014 e.g.");
+      L.push("  mention aliases or `groupChat` keyword patterns). If this version truly has no name-pattern");
+      L.push("  option, fall back to `requireMention: true` in shared channels ONLY and tell me \u2014 never leave");
+      L.push("  every bot answering every message in a shared channel.");
+      L.push("- Verify by test: bare name in the agent's own channel, and in a shared channel. Exactly one");
+      L.push("  agent replies in each case.");
+      L.push("");
+    }
+    L.push("**Config-change discipline, EVERY time this file is touched, forever:** backup \u2192 edit \u2192");
+    L.push("`openclaw config validate` (must print \u201cConfig valid\u201d) \u2192 only then restart \u2192");
+    L.push("`openclaw channels status` (every bot `connected`). A broken config crash-loops the gateway silently.");
+    L.push("");
+    L.push("## STEP 5 \u2014 WORKSPACES, VAULT, AND SOULS");
+    L.push("");
+    L.push("`openclaw agents add` (if used) scaffolds ~16.7K of junk (AGENTS.md, SOUL.md, USER.md, TOOLS.md,");
+    L.push("HEARTBEAT.md) \u2014 past the ~12K point where the gateway SILENTLY TRUNCATES the system prompt.");
+    L.push("For every agent:");
+    L.push("");
+    L.push("```bash");
+    L.push("mkdir -p ~/.openclaw/workspace-<agent>/.killed");
+    L.push("# move any scaffolded SOUL/USER/TOOLS/HEARTBEAT/AGENTS files into .killed/");
+    L.push("```");
+    L.push("");
+    L.push("Never `rm` a file you did not create \u2014 move it to `.killed/`.");
+    L.push("");
+    L.push("**Vault layout \u2014 build it now:**");
+    L.push("");
+    L.push("```");
+    L.push(base + "/Vault/Agents/<name>/");
+    L.push("\u251c\u2500\u2500 SKILLS.md        # what this agent is good at, tools it may use");
+    L.push("\u251c\u2500\u2500 LEARNINGS.md     # append-only; lessons from my feedback");
+    L.push("\u251c\u2500\u2500 Tasks/           # pending.md = inbox from " + (c.name||"the coordinator"));
+    L.push("\u251c\u2500\u2500 Research/        # findings, comps, notes");
+    L.push("\u2514\u2500\u2500 Deliverables/    # finished outputs I collect");
+    L.push("```");
+    L.push("");
+    L.push("Symlink `workspace-<agent>/vault \u2192 " + base + "/Vault/Agents/<name>`.");
+    L.push("");
+    L.push("**SOUL.md per agent \u2014 ~50 lines MAX** (bloat costs tokens on every fire). Sections: Identity");
+    L.push("(name, persona, catchphrase from the roster) \u00b7 Mission (its ONE project) \u00b7 Workflow (tasks arrive");
+    L.push("as a spec in `vault/Tasks/pending.md`; outputs go to `vault/Deliverables/`; reply with a 3-line");
+    L.push("summary + file paths; mark done in pending.md) \u00b7 the **ask-don't-stall rule** (everything needed");
+    L.push("for tasks is pre-allowed \u2014 never pause for permission; if a HUMAN DECISION is genuinely needed,");
+    L.push("post ONE clear question in its own channel and keep working on the independent parts) \u00b7 Hard rules");
+    L.push("(nothing outward-facing \u2014 publishing, spending, sending \u2014 without my explicit go; never fabricate;");
+    L.push("\u201cI cannot confirm\u201d beats guessing) \u00b7 Learning (on feedback, append to `vault/LEARNINGS.md`; read");
+    L.push("SKILLS.md + LEARNINGS.md before similar work).");
+    L.push("");
+    L.push("**" + (c.name||"The coordinator") + "'s SOUL additionally:** the crew roster \u00b7 dispatch protocol (write the task spec to");
+    L.push("the worker's `pending.md` \u2192 dispatch via the **`sessions_send` tool with a fresh, unique session");
+    L.push("id per task** \u2192 verify real evidence of pickup before marking anything \u201cworking\u201d \u2192 maintain");
+    L.push("`Vault/Agents/TASK_BOARD.md`) \u00b7 daily-brief duty (read every project's state + the task board;");
+    L.push("escalations first).");
+    L.push("");
+    L.push("Verify: `cat` all boot files per workspace `| wc -c` \u2014 under 12000 each. Grep the whole build for");
+    L.push("any source-system names \u2014 zero hits.");
+    L.push("");
+    L.push("## STEP 6 \u2014 GATEWAY AS A SERVICE + PAIRING");
+    L.push("");
+    L.push("```bash");
+    L.push("openclaw gateway install        # USER systemd service, not system");
+    L.push("export XDG_RUNTIME_DIR=/run/user/0");
+    L.push("systemctl --user daemon-reload && systemctl --user restart openclaw-gateway");
+    L.push("# RESTART, not enable --now \u2014 enable --now is a no-op if install already started it,");
+    L.push("# and the IS_SANDBOX drop-in never loads.");
+    L.push("```");
+    L.push("");
+    L.push("First CLI calls may demand device pairing \u2014 possibly TWICE. Loop: `openclaw devices list` \u2192");
+    L.push("`openclaw devices approve <request-id>` \u2192 retry, until `openclaw cron list` returns cleanly.");
+    L.push("");
+    L.push("**KNOWN OPEN BUG:** `openclaw agent` calls may log `EMBEDDED FALLBACK: gateway closed (1008):");
+    L.push("pairing required` and run embedded instead of via the gateway. Agents still work and still use");
+    L.push("claude-cli \u2014 log it as an asterisk, not a failure. `devices approve` cannot fix it (each call");
+    L.push("mints a fresh requestId). Untried: the gateway web console at 127.0.0.1:18789 over an SSH tunnel.");
+    L.push("Do not burn more than 20 minutes on pairing before escalating to me.");
+    L.push("");
+    L.push("## STEP 7 \u2014 VERIFY WITH EVIDENCE (do not skip, do not reorder)");
+    L.push("");
+    L.push("1. `openclaw channels status` \u2192 all " + state.agents.length + " bots `connected`.");
+    L.push("2. Test fire EVERY agent:");
+    L.push("");
+    L.push("   ```bash");
+    state.agents.forEach(function(a){
+      L.push("   openclaw agent --agent " + aid(a) + " --message \"Reply with exactly: ONLINE\" --json --timeout 200");
+    });
+    L.push("   ```");
+    L.push("");
+    L.push("   agentMeta MUST show `\"provider\": \"claude-cli\"`. Anything else = auth silently broken \u2192");
+    L.push("   recheck all three gotchas in STEP 3.");
+    L.push("3. `grep -c FailoverError /tmp/openclaw/openclaw-$(date +%F).log` \u2192 0 (or explained).");
+    L.push("4. I type each agent's bare name in its own channel \u2192 it replies in character, no @ required.");
+    L.push("   Then in a shared channel \u2192 only the named agent replies.");
+    L.push("5. Daily brief cron (" + state.briefTime + " " + state.tz + "):");
+    L.push("");
+    L.push("   ```bash");
+    L.push("   openclaw cron add --name daily-brief --agent " + aid(c) + " --cron \"" + cronExpr() + "\" \\");
+    L.push("     --tz " + state.tz + " --session isolated --timeout-seconds 600 \\");
+    L.push("     --account " + aid(c) + " --to " + (state.briefsCh || "<briefs-channel-id>") + " --announce \\");
+    L.push("     --message \"Read every project's state and the task board. Lead with anything in");
+    L.push("   escalations, then each worker's status in one line, then the three things that need me");
+    L.push("   today. Numbers come from real files only.\"");
+    L.push("   ```");
+    L.push("");
+    L.push("   Ask me before enabling it \u2014 it is an autonomous cron.");
+    L.push("6. **REMEDIATION LOOP:** if ANY item fails, fix it, then re-run the ENTIRE list from the top \u2014 a");
+    L.push("   fix can regress an earlier item. Done = one uninterrupted green pass, witnessed by me.");
+    L.push("");
+    if (state.opts.vault){
+      L.push("## STEP 8 \u2014 SYNC THE VAULT TO MY DESKTOP (Obsidian + Syncthing)");
+      L.push("");
+      L.push("Obsidian + SyncTrayzor are already installed on my Windows machine. On the VPS:");
+      L.push("");
+      L.push("```bash");
+      L.push("apt-get install -y syncthing");
+      L.push("systemctl enable --now syncthing@root");
+      L.push("```");
+      L.push("");
+      L.push("Syncthing's GUI binds to 127.0.0.1:8384 \u2014 I reach it with");
+      L.push("`ssh -L 8384:127.0.0.1:8384 root@" + ip() + "` then http://localhost:8384. Never expose 8384 publicly.");
+      L.push("");
+      L.push("1. Each side: Actions \u2192 Show ID; add the other as a Remote Device (both must accept).");
+      L.push("2. VPS: share `" + base + "/Vault` with my desktop device.");
+      L.push("3. Desktop: accept into e.g. `C:\\Users\\<user>\\FleetVault`.");
+      L.push("4. Obsidian: Open folder as vault \u2192 that folder.");
+      L.push("");
+      L.push("Verify: touch a file in an agent's vault on the VPS, watch it appear in Obsidian.");
+      L.push("");
+    }
+    L.push("## STANDING RULES \u2014 write these into CLAUDE.md on the VPS so future sessions re-read them");
+    L.push("");
+    L.push("- **NEVER use `--tools` on any `openclaw cron add` or `openclaw agent` call.** The claude-cli");
+    L.push("  backend cannot enforce tool restrictions \u2014 it fails 100% of the time. Behavioral limits go in");
+    L.push("  the prompt text." + (state.opts.wrapper ? " Install a `/usr/bin/openclaw` wrapper that hard-blocks the flag." : ""));
+    L.push("- **Dispatch = `sessions_send` with a fresh session id per task.** A Discord message containing");
+    L.push("  an agent's name as text is a human convenience, NOT a dispatch. Reused sessions accumulate");
+    L.push("  state \u2192 runaway tool-call loops and `EmbeddedAttemptSessionTakeoverError`.");
+    L.push("- **Status claims need evidence** \u2014 a reply, a new file, or session-log activity. Never intent.");
+    L.push("- **Config-change sequence** (STEP 4) applies forever.");
+    L.push("- Keep every per-fire file lean: SOUL ~50 lines, total boot files under 12K.");
+    L.push("- The subscription token expires in ~1 year; re-auth and redo STEP 3's three gotchas. If Anthropic");
+    L.push("  tightens subscription-token policy for automation, surface the risk \u2014 don't hide it.");
+    L.push("- Every number reported anywhere must come from a real API or a real file. If revenue is $0.00,");
+    L.push("  print $0.00. Never a placeholder.");
+    L.push("");
+    if (state.opts.phase2){
+      L.push("## PHASE 2 (LATER \u2014 only after the bots are fine-tuned): TASK QUEUE + DASHBOARD");
+      L.push("");
+      L.push("Don't build this on day one. Get the fleet talking, tune SOULs and personas for a week, THEN add");
+      L.push("the engine. When you do, these corrections are non-negotiable:");
+      L.push("");
+      L.push("- **Queue:** sqlite (WAL) + Express API on node:sqlite. Dedupe with a PARTIAL unique index \u2014");
+      L.push("  `UNIQUE(dedupe_key, status)` is wrong (allows pending + in_progress twins, breaks repeat tasks):");
+      L.push("");
+      L.push("  ```sql");
+      L.push("  CREATE UNIQUE INDEX idx_tasks_dedupe_open ON tasks(dedupe_key)");
+      L.push("    WHERE dedupe_key IS NOT NULL AND status IN ('pending','assigned','in_progress');");
+      L.push("  ```");
+      L.push("");
+      L.push("- **Spend cap atomicity:** the daily-spend SELECT and the INSERT share one `BEGIN IMMEDIATE`");
+      L.push("  transaction (deferred BEGIN lets two readers past the check). TEST: 20 concurrent $1 creates vs");
+      L.push("  a $10 cap \u2192 exactly 10 created, 10 rejected, exactly $10.00. Usually fails first try.");
+      L.push("- **Cost floors** per task type, applied BEFORE cap arithmetic.");
+      L.push("- **Circuit breaker trap:** fail-safe = PAUSED on unknown balance, but a subscription has no");
+      L.push("  balance \u2192 dispatcher freezes forever. Ship `credits_check_enabled: false` until a metered");
+      L.push("  fallback key exists; the daily cap is the only guard until then \u2014 arm it.");
+      L.push("- **Dispatcher:** polls the API (never the DB), concurrency 1 per agent, fresh session per fire,");
+      L.push("  orphan reaper, hard SIGKILL at timeout.");
+      L.push("- **Dashboard:** plain Express + static HTML (no framework, no bundle trap). Bind LOOPBACK ONLY;");
+      L.push("  reach via `ssh -L 3000:127.0.0.1:3000`. Refuse to start without DASHBOARD_PASSWORD. Cache");
+      L.push("  external-API reads ~10 min server-side. Rooms map to real agents and real data only.");
+      L.push("- **Media spend:** any image-gen script is DRY RUN by default, requires `--confirm`, prints");
+      L.push("  model/count/cost first, appends to a JSONL ledger.");
+      L.push("- **Metered fallback key (if ever added):** per-key credit limit + auto-topup OFF on the provider");
+      L.push("  site, pasted via `read -rsp` into a mode-600 EnvironmentFile. Never `--set-default` it.");
+      L.push("");
+    }
+    L.push("## FINAL SELF-AUDIT (run at the end of EVERY build session)");
+    L.push("");
+    L.push("- [ ] auth profile = oauth/subscription, not api_key");
+    L.push("- [ ] IS_SANDBOX in the gateway PROCESS environ");
+    L.push("- [ ] all " + state.agents.length + " agents test-fire with provider claude-cli");
+    L.push("- [ ] bare-name triggering works; shared channels don't cause bot pile-ons");
+    L.push("- [ ] boot files < 12K per agent; zero source-system names anywhere");
+    L.push("- [ ] nothing listening on a public interface except sshd");
+    if (state.opts.vault) L.push("- [ ] vault syncing to the desktop (file test)");
+    L.push("- [ ] one end-to-end " + (c.name||"coordinator") + " \u2192 worker dispatch via sessions_send, with evidence");
+    L.push("");
+    L.push("Now begin with STEP 2 \u2014 the roster in STEP 0 is settled. Ask only for the missing IDs and the bot");
+    L.push("tokens, one hidden prompt at a time, and verify each gate before the next.");
+    return L.join("\n");
+  }
+
+  function buildOps(){
+    var L = [], c = coord(), ws = workers();
+    L.push("# Ops card \u2014 " + (c.name||"the") + "'s fleet");
+    L.push("");
+    L.push("## The five gotchas that cost real money");
+    L.push("");
+    L.push("| # | Symptom | The rule |");
+    L.push("|---|---|---|");
+    L.push("| 1 | `openclaw models auth list` says `api_key` | You are paying per token. The subscription login has three Linux-specific steps and skipping any one fails silently. |");
+    L.push("| 2 | Billing looks wrong after a repair | `IS_SANDBOX=1` must be in the running PROCESS, not just a config file \u2014 and `openclaw doctor --force` deletes the fix. Never run it. |");
+    L.push("| 3 | An agent acts like it forgot its soul | Oversized boot files are truncated silently. Keep each agent's startup files under 12,000 characters total. |");
+    L.push("| 4 | A cron or agent call fails every single time | Never use `--tools` on any OpenClaw agent or cron command. Behaviour limits go in the prompt text. |");
+    L.push("| 5 | Two agents ping-ponging, runaway tool calls | A name in a Discord message is not a dispatch. Real tasking goes through `sessions_send` with a fresh session per task. |");
+    L.push("");
+    L.push("## Day-two commands");
+    L.push("");
+    L.push("```bash");
+    L.push("ssh root@" + ip() + "");
+    L.push("claude --continue                          # resume the build conversation");
+    L.push("openclaw channels status                   # all bots connected?");
+    L.push("openclaw models auth list                  # must say anthropic/oauth");
+    L.push("openclaw agent --agent " + aid(c) + " --message \"status\" --json --timeout 200");
+    L.push("openclaw cron list                         # is the daily brief armed?");
+    L.push("openclaw doctor --fix                      # restore last known good. NEVER --force");
+    L.push("systemctl --user restart openclaw-gateway  # after any config edit");
+    if (state.opts.vault) L.push("ssh -L 8384:127.0.0.1:8384 root@" + ip() + "   # Syncthing panel");
+    L.push("```");
+    L.push("");
+    L.push("## Config change, every time");
+    L.push("");
+    L.push("backup \u2192 edit \u2192 `openclaw config validate` (\u201cConfig valid\u201d) \u2192 restart \u2192 `openclaw channels status`.");
+    L.push("A broken config crash-loops the gateway silently.");
+    L.push("");
+    L.push("## Who to talk to");
+    L.push("");
+    L.push("| Say this | And it reaches |");
+    L.push("|---|---|");
+    L.push("| anything in `#" + chan(c) + "` | " + (c.name||"?") + " \u2014 " + (c.owns||"dispatch") + " |");
+    ws.forEach(function(a){
+      L.push("| anything in `#" + chan(a) + "`, or \u201c" + (a.name||"?").toLowerCase() + " \u2026\u201d anywhere | " + (a.name||"?") + " \u2014 " + (a.owns||"\u2014") + " |");
+    });
+    L.push("");
+    L.push("Brief lands in `#daily-briefs` at " + state.briefTime + " " + state.tz + " (`" + cronExpr() + "`).");
+    L.push("Decisions you owe the fleet show up in `#escalations`.");
+    L.push("");
+    L.push("## Reference");
+    L.push("");
+    L.push("- Terms of Service: " + TOS_URL);
+    L.push("- Privacy Policy: " + PRIV_URL);
+    L.push("- Guild `" + (state.guildId||"\u2014") + "` \u00b7 briefs `" + (state.briefsCh||"\u2014") + "` \u00b7 escalations `" + (state.escCh||"\u2014") + "`");
+    return L.join("\n");
+  }
+
+  var PANES = {
+    prompt: { build: buildPrompt, file:"ULTIMATE-ONE-SHOT.md", label:"The prompt" },
+    ops:    { build: buildOps,    file:"OPS-CARD.md",          label:"Ops card" }
+  };
+  var outCache = {};
+
+  /* ================= toast + copy ================= */
+  var toastEl = null, toastTimer = null;
+  function toast(msg){
+    if (toastEl) toastEl.remove();
+    toastEl = el("div","toast",msg);
+    toastEl.setAttribute("role","status");
+    document.body.appendChild(toastEl);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ if (toastEl){ toastEl.remove(); toastEl = null; } }, 2400);
+  }
+  function copyText(text, label){
+    function fallback(){
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch(e){ ok = false; }
+      ta.remove();
+      toast(ok ? label + " copied" : "Couldn't copy \u2014 select the text and copy manually");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ toast(label + " copied"); }, fallback);
+    } else fallback();
+  }
+
+  function codeBlock(label, code){
+    var box = el("div");
+    if (label) { var lb = el("div","seealso-label", label); box.appendChild(lb); }
+    var cb = el("div","codeblock");
+    var pre = el("pre"); pre.textContent = code;
+    var btn = el("button","cp","copy"); btn.type = "button";
+    btn.onclick = function(){ copyText(code, "Command"); };
+    cb.appendChild(pre); cb.appendChild(btn);
+    box.appendChild(cb);
+    return box;
+  }
+
+  /* ================= bodies ================= */
+  function agentCard(a, idx){
+    var card = el("div","agent" + (idx===0 ? " coord" : ""));
+    var top = el("div","agent-top");
+    var tag = el("span","tagpill" + (idx===0 ? "" : " worker"), idx===0 ? "Coordinator" : "Worker " + idx);
+    var addr = el("span","addr","#" + chan(a));
+    top.appendChild(tag); top.appendChild(addr); top.appendChild(el("span","spacer"));
+    if (idx !== 0){
+      var del = el("button","iconbtn","Remove"); del.type="button";
+      del.setAttribute("aria-label","Remove " + (a.name||"worker"));
+      del.onclick = function(){
+        state.agents = state.agents.filter(function(x){ return x.id !== a.id; });
+        rebuild();
+      };
+      top.appendChild(del);
+    }
+    card.appendChild(top);
+
+    function fld(labelText, key, ph, mono){
+      var f = el("div","field" + (mono ? " mono" : ""));
+      var l = el("label", null, labelText);
+      var i = document.createElement("input");
+      i.id = "ag-" + a.id + "-" + key; i.value = a[key] || ""; i.placeholder = ph;
+      l.htmlFor = i.id;
+      i.addEventListener("input", function(){
+        a[key] = i.value;
+        if (key === "name" || key === "channel") addr.textContent = "#" + chan(a);
+        softRefresh();
+      });
+      f.appendChild(l); f.appendChild(i);
+      return f;
+    }
+
+    var r1 = el("div","grid2");
+    r1.appendChild(fld("Name","name", idx===0 ? "Atlas" : "Scout"));
+    r1.appendChild(fld("Role","role", idx===0 ? "Coordinator" : "Researcher"));
+    card.appendChild(r1);
+    card.appendChild(fld("Owns \u2014 its one project","owns", idx===0 ? "dispatch, task board, daily brief" : "research, sourcing, price comps"));
+    card.appendChild(fld("Persona \u2014 one line","persona","calm bridge officer, never flustered"));
+    var r2 = el("div","grid2");
+    r2.appendChild(fld("Catchphrase","catchphrase","Logged. Dispatching."));
+    r2.appendChild(fld("Channel override","channel", (slug(a.name)||"agent") + "-chat", true));
+    card.appendChild(r2);
+    return card;
+  }
+
+  function bodyCrew(){
+    var box = el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="12px";
+    var crew = el("div"); crew.style.display="flex"; crew.style.flexDirection="column"; crew.style.gap="11px";
+    state.agents.forEach(function(a,i){ crew.appendChild(agentCard(a,i)); });
+    box.appendChild(crew);
+
+    var bar = el("div","rowbar");
+    var add = el("button","btn tiny","+ Add worker"); add.type="button";
+    add.disabled = state.agents.length >= 7;
+    add.onclick = function(){
+      state.agents.push({ id:nid(), role:"Worker", name:"", owns:"", persona:"", catchphrase:"", channel:"" });
+      rebuild();
+    };
+    bar.appendChild(add);
+    var hint = el("span"); hint.style.fontSize="12.5px"; hint.style.color="var(--muted)";
+    hint.textContent = workers().length + " worker" + (workers().length===1?"":"s") + " \u00b7 2\u20135 is the sweet spot";
+    bar.appendChild(hint);
+    box.appendChild(bar);
+
+    var g = el("div","grid3");
+    g.appendChild(selField("Timezone","tz",TZS));
+    g.appendChild(selField("Claude tier","tier",["Max 5x","Max 20x","Pro"]));
+    g.appendChild(txtField("Daily brief","briefTime","07:45","time"));
+    box.appendChild(g);
+    var g2 = el("div","grid2");
+    g2.appendChild(txtField("Base folder","base","~/fleet","text",true));
+    g2.appendChild(txtField("Ubuntu image","ubuntu","26.04"));
+    box.appendChild(g2);
+
+    var sws = el("div");
+    sws.style.display="flex"; sws.style.flexDirection="column"; sws.style.gap="2px";
+    sws.appendChild(el("div","seealso-label","Include in the prompt"));
+    OPTS.forEach(function(o){
+      var lab = el("label","sw");
+      var cb = document.createElement("input"); cb.type="checkbox"; cb.id="opt-"+o.key; cb.checked = !!state.opts[o.key];
+      cb.addEventListener("change", function(){ state.opts[o.key] = cb.checked; rebuild(); });
+      var d = el("div");
+      d.appendChild(el("b",null,o.title));
+      d.appendChild(el("small",null,o.desc));
+      lab.appendChild(cb); lab.appendChild(d);
+      sws.appendChild(lab);
+    });
+    box.appendChild(sws);
+    return box;
+  }
+
+  function txtField(label, key, ph, type, mono){
+    var f = el("div","field" + (mono ? " mono" : ""));
+    var l = el("label",null,label);
+    var i = document.createElement("input");
+    i.id = "f-" + key; i.value = state[key] || ""; i.placeholder = ph || "";
+    if (type) i.type = type;
+    l.htmlFor = i.id;
+    i.addEventListener("input", function(){ state[key] = i.value; softRefresh(); });
+    if (type === "time") i.addEventListener("change", function(){ state[key] = i.value; softRefresh(); });
+    f.appendChild(l); f.appendChild(i);
+    return f;
+  }
+  function selField(label, key, list){
+    var f = el("div","field");
+    var l = el("label",null,label);
+    var s = document.createElement("select"); s.id = "f-" + key;
+    l.htmlFor = s.id;
+    var items = list.slice();
+    if (state[key] && items.indexOf(state[key]) === -1) items.unshift(state[key]);
+    items.forEach(function(v){
+      var o = document.createElement("option"); o.value = v; o.textContent = v;
+      if (v === state[key]) o.selected = true;
+      s.appendChild(o);
+    });
+    s.addEventListener("change", function(){ state[key] = s.value; softRefresh(); });
+    f.appendChild(l); f.appendChild(s);
+    return f;
+  }
+
+  function bodyDiscord(){
+    var box = el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="12px";
+    var g = el("div","grid3");
+    g.appendChild(txtField("Server (guild) ID","guildId","1234567890123456789","text",true));
+    g.appendChild(txtField("#daily-briefs ID","briefsCh","channel ID","text",true));
+    g.appendChild(txtField("#escalations ID","escCh","channel ID","text",true));
+    box.appendChild(g);
+    return box;
+  }
+
+  function bodyLegal(){
+    var box = el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="11px";
+    [["Terms of Service URL", TOS_URL],["Privacy Policy URL", PRIV_URL]].forEach(function(p){
+      var row = el("div","preset");
+      var b = el("b",null,p[0]);
+      var sp = el("span","spacer");
+      var open = el("a","btn tiny","Open"); open.href = p[1]; open.target="_blank"; open.rel="noopener noreferrer";
+      var cp = el("button","btn tiny","Copy"); cp.type="button";
+      cp.onclick = function(){ copyText(p[1], p[0]); };
+      row.appendChild(b); row.appendChild(sp); row.appendChild(open); row.appendChild(cp);
+      box.appendChild(row);
+    });
+    var n = el("div","note good");
+    n.innerHTML = "One pair covers every bot \u2014 Discord asks each application for the same two URLs, and there is no rule against reusing them. You never have to make these again.";
+    box.appendChild(n);
+    return box;
+  }
+
+  function bodyServer(){
+    var box = el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="12px";
+    var g = el("div","grid2");
+    g.appendChild(txtField("Server IPv4","vpsIp","203.0.113.50","text",true));
+    g.appendChild(txtField("Plan","plan","Hetzner CX33"));
+    box.appendChild(g);
+    var n = el("div","note");
+    n.innerHTML = "Paste the IPv4 and every <code>ssh</code> command on this page fills itself in. It is the <b>server's</b> address from the Hetzner console \u2014 never your own computer's.";
+    box.appendChild(n);
+    return box;
+  }
+
+  function bodyCommands(){ return el("div"); }
+
+  function bodyOutput(paneDefault){
+    var box = el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="12px";
+
+    var ready = el("div","ready");
+    box.appendChild(ready);
+
+    var tabs = el("div","tabs"); tabs.setAttribute("role","tablist");
+    Object.keys(PANES).forEach(function(k){
+      var t = el("button","tab",PANES[k].label); t.type="button"; t.setAttribute("role","tab");
+      t.setAttribute("aria-selected", String(k === activePane));
+      t.onclick = function(){
+        activePane = k;
+        Array.prototype.forEach.call(tabs.children, function(x,i){
+          x.setAttribute("aria-selected", String(Object.keys(PANES)[i] === k));
+        });
+        paint();
+      };
+      tabs.appendChild(t);
+    });
+    box.appendChild(tabs);
+
+    var bar = el("div","outbar");
+    var meta = el("span","meta","\u2014");
+    bar.appendChild(meta); bar.appendChild(el("span","spacer"));
+    var cp = el("button","btn tiny","Copy"); cp.type="button";
+    cp.onclick = function(){ copyText(outCache[activePane], PANES[activePane].label); };
+    var dl = el("button","btn tiny primary","Download .md"); dl.type="button";
+    dl.onclick = function(){ doDownload(); };
+    bar.appendChild(cp); bar.appendChild(dl);
+    box.appendChild(bar);
+
+    var pre = el("pre","out"); pre.tabIndex = 0;
+    box.appendChild(pre);
+
+    function paint(){
+      outCache.prompt = buildPrompt();
+      outCache.ops = buildOps();
+      var txt = outCache[activePane];
+      pre.textContent = txt;
+      meta.textContent = PANES[activePane].file + " \u00b7 " + txt.length.toLocaleString() + " chars";
+      ready.innerHTML = "";
+      readyItems().forEach(function(i){
+        var c = el("span","chip " + (i.ok ? "ok" : "gap"), (i.ok ? "\u2713 " : "\u25CB ") + i.t);
+        ready.appendChild(c);
+      });
+    }
+    box._paint = paint;
+    paint();
+    return box;
+  }
+
+  function bodyOps(){
+    var box = el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="12px";
+    var bar = el("div","outbar");
+    bar.appendChild(el("span","meta","OPS-CARD.md"));
+    bar.appendChild(el("span","spacer"));
+    var cp = el("button","btn tiny","Copy ops card"); cp.type="button";
+    cp.onclick = function(){ copyText(buildOps(), "Ops card"); };
+    bar.appendChild(cp);
+    box.appendChild(bar);
+    var pre = el("pre","out"); pre.textContent = buildOps(); pre.tabIndex = 0;
+    box.appendChild(pre);
+    box._paint = function(){ pre.textContent = buildOps(); };
+    return box;
+  }
+
+  function readyItems(){
+    var items = [];
+    var unnamed = state.agents.filter(function(a){ return !a.name.trim(); }).length;
+    var noPersona = state.agents.filter(function(a){ return !a.persona.trim(); }).length;
+    var ws = workers().length;
+    items.push({ ok: unnamed === 0, t: unnamed === 0 ? state.agents.length + " agents named" : unnamed + " unnamed" });
+    items.push({ ok: ws >= 2 && ws <= 5, t: ws + " worker" + (ws===1?"":"s") });
+    items.push({ ok: noPersona === 0, t: noPersona === 0 ? "personas written" : noPersona + " persona(s) blank" });
+    items.push({ ok: !!state.guildId.trim(), t: "guild ID" });
+    items.push({ ok: !!state.briefsCh.trim(), t: "briefs ID" });
+    items.push({ ok: !!state.escCh.trim(), t: "escalations ID" });
+    return items;
+  }
+
+  /* ================= download ================= */
+  var downloads = null;
+  function fullDoc(){
+    return [
+      "# " + (coord().name || "Fleet") + "'s fleet \u2014 build pack",
+      "",
+      "Generated by Fleet One-Shot Builder \u00b7 " + new Date().toISOString().slice(0,10),
+      "Paste the prompt into Claude Code **on the VPS**. Keep the ops card open in week one.",
+      "",
+      "Terms of Service: " + TOS_URL,
+      "Privacy Policy: " + PRIV_URL,
+      "",
+      "---",
+      "",
+      buildPrompt(), "", "---", "", buildOps()
+    ].join("\n");
+  }
+  function doDownload(){
+    var name = (slug(coord().name) || "fleet") + "-build-pack.md";
+    if (!downloads){ copyText(fullDoc(), "Downloads unavailable here \u2014 build pack"); return; }
+    downloads.save({ filename:name, data:fullDoc() }).then(function(){ toast("Saved " + name); }, function(err){
+      var code = err && err.code;
+      if (code === "declined") return;
+      if (code === "rate_limited"){ toast("A save prompt is already open"); return; }
+      copyText(fullDoc(), "Build pack");
+    });
+  }
+
+  /* ================= card rendering ================= */
+  var cardRefs = {};
+
+  function taskRow(t){
+    var on = !!checked[t.id];
+    var b = el("button","task-row"); b.type = "button";
+    b.setAttribute("role","checkbox");
+    b.setAttribute("aria-checked", String(on));
+    var box = el("span","task-box" + (on ? " on" : ""), on ? "\u2713" : "");
+    box.setAttribute("aria-hidden","true");
+    var lab = el("span","task-label" + (on ? " on" : ""));
+    lab.appendChild(document.createTextNode(t.label + (t.optional ? " (optional)" : "")));
+    if (t.sub) lab.appendChild(el("span","task-sub",t.sub));
+    b.appendChild(box); b.appendChild(lab);
+    b.onclick = function(){ toggleTask(t.id); };
+    return b;
+  }
+
+  function buildCard(p, idx){
+    var card = el("article","card");
+    var head = el("button","card-head"); head.type = "button";
+    var num = el("span","card-num",p.num);
+    var title = el("span","card-title");
+    title.appendChild(document.createTextNode(p.title));
+    if (p.tag) title.appendChild(el("span","tag",p.tag));
+    var count = el("span","card-count","");
+    head.appendChild(num); head.appendChild(title); head.appendChild(count);
+    head.onclick = function(){ open[p.id] = !open[p.id]; paintCards(); };
+    card.appendChild(head);
+
+    var body = el("div","card-body");
+
+    var whyBox = el("div");
+    whyBox.style.display = "flex";
+    whyBox.style.flexDirection = "column";
+    whyBox.style.gap = "10px";
+    body.appendChild(whyBox);
+
+    var lock = el("div","locknote");
+    lock.hidden = true;
+    body.appendChild(lock);
+
+    if (p.note){
+      var n = el("div","note" + (p.note.kind === "good" ? " good" : ""));
+      n.innerHTML = p.note.html;
+      body.appendChild(n);
+    }
+
+    var inner = null;
+    if (p.body === "crew")     inner = bodyCrew();
+    if (p.body === "discord")  inner = bodyDiscord();
+    if (p.body === "legal")    inner = bodyLegal();
+    if (p.body === "server")   inner = bodyServer();
+    if (p.body === "prompt")   inner = bodyOutput();
+    if (p.body === "ops")      inner = bodyOps();
+    if (inner) body.appendChild(inner);
+
+    var dyn = el("div");
+    dyn.style.display = "flex";
+    dyn.style.flexDirection = "column";
+    dyn.style.gap = "13px";
+    body.appendChild(dyn);
+
+    card.appendChild(body);
+    cardRefs[p.id] = { card:card, head:head, body:body, count:count, lock:lock,
+                       inner:inner, title:title, whyBox:whyBox, dyn:dyn, idx:idx };
+    fillDynamic(p);
+    return card;
+  }
+
+  // everything that depends on live crew/server values, rebuilt on each paint
+  function fillDynamic(p){
+    var r = cardRefs[p.id];
+    if (!r) return;
+
+    r.title.textContent = "";
+    r.title.appendChild(document.createTextNode(p.title));
+    if (p.tag) r.title.appendChild(el("span","tag",p.tag));
+
+    r.whyBox.innerHTML = "";
+    p.why.split("\n\n").forEach(function(par){ r.whyBox.appendChild(el("p","card-why",par)); });
+
+    r.dyn.innerHTML = "";
+    var tasksBox = el("div","tasks");
+    (p.tasks||[]).forEach(function(t){ tasksBox.appendChild(taskRow(t)); });
+    (p.groups||[]).forEach(function(g){
+      tasksBox.appendChild(el("div","tasks-group-label", g.group));
+      var gb = el("div","tasks tasks-group");
+      g.items.forEach(function(t){ gb.appendChild(taskRow(t)); });
+      tasksBox.appendChild(gb);
+    });
+    r.dyn.appendChild(tasksBox);
+
+    (p.commands||[]).forEach(function(cmd){ r.dyn.appendChild(codeBlock(cmd.label, cmd.code)); });
+
+    if (p.links && p.links.length){
+      var sa = el("div","seealso");
+      sa.appendChild(el("div","seealso-label","See also"));
+      p.links.forEach(function(l){
+        var d = el("div","seealso-item");
+        var a = document.createElement("a");
+        a.href = l.url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = l.label;
+        d.appendChild(a);
+        d.appendChild(el("span","note"," \u2014 " + l.note));
+        sa.appendChild(d);
+      });
+      r.dyn.appendChild(sa);
+    }
+  }
+
+  function toggleTask(id){
+    checked[id] = !checked[id];
+    PHASES.forEach(function(p){
+      var d = phaseDone(p);
+      if (d && !stamps[p.id]) stamps[p.id] = stampDate();
+      if (!d && stamps[p.id]) delete stamps[p.id];
+    });
+    paintCards();
+    persist();
+  }
+
+  function currentPhaseIdx(){
+    for (var i = 0; i < PHASES.length; i++){ if (!phaseDone(PHASES[i])) return i; }
+    return -1;
+  }
+
+  function paintCards(){
+    var cur = currentPhaseIdx();
+    PHASES.forEach(function(p, i){
+      var r = cardRefs[p.id];
+      if (!r) return;
+      var cnt = phaseCount(p);
+      var done = cnt.total > 0 && cnt.done === cnt.total;
+      var isOpen = !!open[p.id];
+
+      r.count.textContent = cnt.done + "/" + cnt.total + " " + (isOpen ? "\u25BE" : "\u25B8");
+      r.count.className = "card-count" + (done ? " complete" : "");
+      r.card.className = "card" + (done ? " done" : "") + ((cur !== -1 && i > cur) ? " locked" : "");
+      r.head.setAttribute("aria-expanded", String(isOpen));
+      r.body.hidden = !isOpen;
+
+      var old = r.card.querySelector(".stamp");
+      if (old) old.remove();
+      if (done){
+        var s = el("div","stamp","CLEARED \u00b7 " + (stamps[p.id] || stampDate()));
+        r.card.appendChild(s);
+      }
+
+      if (cur !== -1 && i > cur && !done){
+        r.lock.hidden = false;
+        r.lock.textContent = "Phase " + PHASES[cur].num + " \u2014 " + PHASES[cur].title + " \u2014 isn't finished. You can work ahead, but the gates exist for a reason.";
+      } else r.lock.hidden = true;
+
+      fillDynamic(p);
+      if (r.inner && r.inner._paint) r.inner._paint();
+    });
+
+    // record
+    var total = 0, done = 0;
+    PHASES.forEach(function(p){ var c = phaseCount(p); total += c.total; done += c.done; });
+    var pct = total ? Math.round(done/total*100) : 0;
+    $("recFill").style.width = pct + "%";
+    $("recCount").textContent = done + " / " + total + " steps \u00b7 " + pct + "%";
+    $("recPhase").textContent = cur === -1 ? "ALL PHASES CLEARED" : "PHASE " + (cur+1) + " OF " + PHASES.length;
+    $("recLabel").textContent = (coord().name ? coord().name.toUpperCase() + "'S FLEET" : "COMMISSIONING RECORD");
+    $("markMeta").textContent = state.agents.length + " agents \u00b7 " + pct + "%";
+  }
+
+  function softRefresh(){
+    PHASES = phaseDefs();
+    paintCards();
+    persist();
+  }
+
+  function rebuild(){
+    PHASES = phaseDefs();
+    var host = $("phases");
+    host.innerHTML = "";
+    cardRefs = {};
+    var cur = currentPhaseIdx();
+    PHASES.forEach(function(p,i){
+      if (!(p.id in open)) open[p.id] = (i === (cur === -1 ? 0 : cur));
+      host.appendChild(buildCard(p,i));
+    });
+    paintCards();
+    persist();
+  }
+
+  $("jumpBtn").addEventListener("click", function(){
+    var cur = currentPhaseIdx();
+    var p = PHASES[cur === -1 ? PHASES.length-1 : cur];
+    open[p.id] = true;
+    paintCards();
+    var r = cardRefs[p.id];
+    if (r) r.card.scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+
+  $("themeBtn").addEventListener("click", function(){
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme");
+    var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = cur ? (cur === "dark" ? "light" : "dark") : (prefersDark ? "light" : "dark");
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("fleet-theme", next); } catch(e){}
+  });
+  try { var st = localStorage.getItem("fleet-theme"); if (st) document.documentElement.setAttribute("data-theme", st); } catch(e){}
+
+  var confirmReset = false, resetTimer = null;
+  $("resetBtn").addEventListener("click", function(){
+    var b = $("resetBtn");
+    if (!confirmReset){
+      confirmReset = true;
+      b.textContent = "TAP AGAIN TO CLEAR TICKS";
+      b.className = "resetbtn confirm";
+      resetTimer = setTimeout(function(){
+        confirmReset = false; b.textContent = "RESET PROGRESS"; b.className = "resetbtn";
+      }, 3500);
+      return;
+    }
+    clearTimeout(resetTimer);
+    confirmReset = false;
+    b.textContent = "RESET PROGRESS"; b.className = "resetbtn";
+    checked = {}; stamps = {};
+    paintCards(); persist();
+    toast("Ticks cleared \u2014 your crew is untouched");
+  });
+
+  /* ================= persistence ================= */
+  var db = null, LS = "fleet-walkthrough-v1";
+  var saveTimer = null, armed = false;
+
+  function snapshot(){
+    return {
+      state: { tz:state.tz, tier:state.tier, base:state.base, briefTime:state.briefTime,
+               plan:state.plan, ubuntu:state.ubuntu, vpsIp:state.vpsIp,
+               guildId:state.guildId, briefsCh:state.briefsCh, escCh:state.escCh,
+               opts:clone(state.opts), agents:clone(state.agents) },
+      checked: clone(checked), stamps: clone(stamps)
+    };
+  }
+  function adopt(s){
+    if (!s || !s.state || !s.state.agents || !s.state.agents.length) return;
+    var p = s.state;
+    ["tz","tier","base","briefTime","plan","ubuntu","vpsIp","guildId","briefsCh","escCh"].forEach(function(k){
+      if (typeof p[k] === "string") state[k] = p[k];
+    });
+    if (p.opts) Object.keys(state.opts).forEach(function(k){ if (k in p.opts) state.opts[k] = !!p.opts[k]; });
+    state.agents = p.agents.map(function(a){
+      return { id:a.id||nid(), role:a.role||"", name:a.name||"", owns:a.owns||"",
+               persona:a.persona||"", catchphrase:a.catchphrase||"", channel:a.channel||"" };
+    });
+    checked = s.checked || {};
+    stamps = s.stamps || {};
+    open = {};
+    rebuild();
+  }
+  function persist(){
+    if (!armed) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      var snap = snapshot();
+      try { localStorage.setItem(LS, JSON.stringify(snap)); } catch(e){}
+      if (db) db.doc("builds/current").set({ snap: snap, savedAt: new Date().toISOString() }).catch(function(){});
+    }, 900);
+  }
+
+  /* ================= boot ================= */
+  PHASES = phaseDefs();
+  rebuild();
+  try {
+    var raw = localStorage.getItem(LS);
+    if (raw) adopt(JSON.parse(raw));
+  } catch(e){}
+  armed = true;
+
+  if (window.claude && window.claude.use){
+    window.claude.use("downloads").then(function(ns){ downloads = ns; }, function(){});
+    window.claude.use("db").then(function(ns){
+      if (!ns) return;
+      db = ns;
+      $("liveDot").className = "dot live";
+      $("footNote").textContent = "Progress follows you across devices.";
+      db.doc("builds/current").get().then(function(s){
+        if (s.exists){
+          var v = s.data();
+          if (v && v.snap) adopt(v.snap);
+        }
+      }, function(){});
+    }, function(){});
+  }
+})();
+</script>
+</body>
+</html>
