@@ -383,6 +383,10 @@
       desc: "How-to videos become written guides", colors: ["#5b5bd6", "#8f8ff6"] }
   ];
   var INVENTIONS = null; /* null = still loading; [] = loaded, none live */
+  var EXTERNAL_INVENTIONS = [
+    { name: "Free PDF Library", emoji: "📄", url: "https://www.freepdflibrary.com", priceLabel: "Free",
+      tagline: "A free, growing library of downloadable PDFs." }
+  ];
   var INV_WRITEUPS = [
     { title: "Video → Steps", emoji: "🎬", url: "inventions/video-to-steps/", tag: "Overview",
       desc: "How-to videos become written guides — an overview of the app." }
@@ -424,11 +428,13 @@
       + '<span class="icon-label">'+esc(a.name)+'</span></a>';
   }
   function inventionRow(v){
-    var price = v.price > 0 ? "$" + (v.price/100).toFixed(2) : "—";
+    var price = v.price > 0 ? "$" + (v.price/100).toFixed(2) : (v.priceLabel || "—");
     var thumb = v.hero
       ? '<img src="'+esc(v.hero)+'" alt="" style="width:100%;height:100%;object-fit:cover;">'
       : (v.emoji || "🛠️");
-    return '<a class="list-row" href="inventions/'+esc(v.slug)+'/">'
+    var href = v.url || ("inventions/" + esc(v.slug) + "/");
+    var target = isExternal(href) ? ' target="_blank" rel="noopener"' : '';
+    return '<a class="list-row" href="'+href+'"'+target+'>'
       + '<span class="row-thumb">'+thumb+'</span>'
       + '<span><span class="row-title">'+esc(v.name)+'</span>'
       + '<div class="row-desc">'+esc(v.tagline||"")+'</div></span>'
@@ -443,8 +449,8 @@
       + '<span class="row-price mono">'+esc(w.tag)+'</span>'
       + '<span class="row-cta">Open</span></a>';
   }
-  function inventionsListHTML(items){
-    if (items === null) return '<p class="empty-note">Loading inventions…</p>';
+  function inventionsListHTML(){
+    var items = EXTERNAL_INVENTIONS.concat(Array.isArray(INVENTIONS) ? INVENTIONS : []);
     if (!items.length) return '<p class="empty-note">No purchasable inventions listed yet — physical builds land here first.</p>';
     return '<div class="list-rows">' + items.map(inventionRow).join("") + '</div>';
   }
@@ -498,7 +504,17 @@
 
           + '<section class="stack">'
             + '<div class="sec-head"><h2>Inventions</h2><a class="see-all" href="#/inventions">See all →</a></div>'
-            + inventionsListHTML(INVENTIONS)
+            + inventionsListHTML()
+          + '</section>'
+
+          + '<section class="stack">'
+            + '<div class="sec-head"><h2>Write-ups</h2></div>'
+            + '<div class="list-rows">' + INV_WRITEUPS.map(writeupRow).join("") + '</div>'
+          + '</section>'
+
+          + '<section class="stack">'
+            + '<div class="sec-head"><h2>Tools</h2></div>'
+            + '<div class="list-rows">' + INV_TOOLS.map(writeupRow).join("") + '</div>'
           + '</section>'
 
           + ctaBlock;
@@ -541,7 +557,7 @@
         return ''
           + '<div class="stack page-head"><span class="eyebrow">CAD · STL · PDF downloads</span><h1>Inventions</h1><p>Physical tools designed in the workshop, sold as downloadable build files — print or machine them yourself.</p></div>'
           + '<section class="stack no-rule">'
-            + inventionsListHTML(INVENTIONS)
+            + inventionsListHTML()
           + '</section>'
           + '<section class="stack">'
             + '<div class="sec-head"><h2>Write-ups</h2></div>'
