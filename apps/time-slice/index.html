@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TimeSlice — Scarlet's Workshop</title>
+<meta name="description" content="A focus timer: work/break cycles, session history, and a nudge when time's up.">
+<style>
+  :root{
+    --bg: #0a0e14; --card: rgba(255,255,255,0.045); --card-border: rgba(255,255,255,0.09);
+    --text: #e8edf4; --muted: #8b95a5; --accent: #4fd8ff; --accent-2: #a06bff;
+    --good: #5ef2a6;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  body{
+    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    background-image: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(79,216,255,0.13), transparent);
+  }
+  .wrap{ max-width: 480px; margin: 0 auto; padding: 48px 20px 80px; }
+  .back{
+    display: inline-block; text-decoration: none; color: var(--muted);
+    font-size: 14px; font-weight: 600; margin-bottom: 32px;
+    padding: 8px 16px; border: 1px solid var(--card-border); border-radius: 999px;
+    transition: all .2s;
+  }
+  .back:hover{ color: var(--accent); border-color: var(--accent); }
+  h1{ font-size: 30px; margin-bottom: 8px; }
+  h1 span{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub{ color: var(--muted); margin-bottom: 28px; }
+
+  .card{
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 16px; padding: 22px; margin-bottom: 16px;
+  }
+
+  .mode-row{ display: flex; gap: 8px; margin-bottom: 24px; }
+  .mode-btn{
+    flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--card-border);
+    background: transparent; color: var(--muted); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .mode-btn.active{ color: var(--bg); background: var(--accent); border-color: var(--accent); }
+
+  .timer{ text-align: center; }
+  .clock{
+    font-size: 68px; font-weight: 700; font-variant-numeric: tabular-nums;
+    letter-spacing: 2px; margin: 8px 0 4px;
+  }
+  .phase-label{ color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 20px; }
+
+  .controls{ display: flex; gap: 10px; justify-content: center; }
+  .btn{
+    padding: 12px 26px; border-radius: 12px; border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.06); color: var(--text); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .btn:hover{ border-color: var(--accent); color: var(--accent); }
+  .btn.primary{ background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .btn.primary:hover{ color: var(--bg); opacity: .9; }
+
+  .card h2{ font-size: 14px; margin-bottom: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-row{ display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .stat-row:last-child{ margin-bottom: 0; }
+  .stat-label{ color: var(--muted); font-size: 14px; }
+  .stat-value{ font-weight: 700; font-size: 15px; }
+  .stat-value.good{ color: var(--good); }
+
+  .notice{ font-size: 13px; color: var(--muted); text-align: center; margin-top: 14px; }
+  .notice button{ background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; font-size: 13px; padding: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../">← Back to Scarlet's Workshop</a>
+  <h1><span>TimeSlice</span></h1>
+  <p class="sub">A focus timer — work in slices, break on purpose.</p>
+
+  <div class="card">
+    <div class="mode-row">
+      <button class="mode-btn active" data-work="25" data-break="5">25 / 5</button>
+      <button class="mode-btn" data-work="50" data-break="10">50 / 10</button>
+      <button class="mode-btn" data-work="15" data-break="3">15 / 3</button>
+    </div>
+
+    <div class="timer">
+      <div class="phase-label" id="phase-label">Focus</div>
+      <div class="clock" id="clock">25:00</div>
+      <div class="controls">
+        <button class="btn primary" id="toggle-btn">Start</button>
+        <button class="btn" id="reset-btn">Reset</button>
+        <button class="btn" id="skip-btn">Skip</button>
+      </div>
+    </div>
+
+    <div class="notice" id="notice-row"></div>
+  </div>
+
+  <div class="card">
+    <h2>Today</h2>
+    <div class="stat-row">
+      <span class="stat-label">Focus sessions completed</span>
+      <span class="stat-value good" id="stat-sessions">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Focus minutes</span>
+      <span class="stat-value" id="stat-minutes">0</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "timeslice-state-v1";
+
+  const clockEl = document.getElementById("clock");
+  const phaseLabelEl = document.getElementById("phase-label");
+  const toggleBtn = document.getElementById("toggle-btn");
+  const resetBtn = document.getElementById("reset-btn");
+  const skipBtn = document.getElementById("skip-btn");
+  const noticeRow = document.getElementById("notice-row");
+  const statSessionsEl = document.getElementById("stat-sessions");
+  const statMinutesEl = document.getElementById("stat-minutes");
+  const modeBtns = Array.from(document.querySelectorAll(".mode-btn"));
+
+  function todayKey(){
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function loadStats(){
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      if (raw.day === todayKey()) return raw;
+    } catch (e) {}
+    return { day: todayKey(), sessions: 0, minutes: 0 };
+  }
+
+  function saveStats(stats){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); } catch (e) {}
+  }
+
+  let stats = loadStats();
+
+  let workMinutes = 25;
+  let breakMinutes = 5;
+  let phase = "focus"; // "focus" | "break"
+  let secondsLeft = workMinutes * 60;
+  let running = false;
+  let tickHandle = null;
+
+  function fmt(s){
+    const m = Math.floor(s / 60).toString().padStart(2, "0");
+    const sec = Math.floor(s % 60).toString().padStart(2, "0");
+    return m + ":" + sec;
+  }
+
+  function render(){
+    clockEl.textContent = fmt(secondsLeft);
+    phaseLabelEl.textContent = phase === "focus" ? "Focus" : "Break";
+    toggleBtn.textContent = running ? "Pause" : (secondsLeft === (phase === "focus" ? workMinutes : breakMinutes) * 60 ? "Start" : "Resume");
+    statSessionsEl.textContent = stats.sessions;
+    statMinutesEl.textContent = stats.minutes;
+    document.title = (running ? fmt(secondsLeft) + " · " : "") + "TimeSlice";
+  }
+
+  function notify(message){
+    noticeRow.textContent = message;
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("TimeSlice", { body: message });
+    }
+  }
+
+  function requestNotifyPermission(){
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }
+
+  function switchPhase(){
+    if (phase === "focus") {
+      stats.sessions += 1;
+      stats.minutes += workMinutes;
+      saveStats(stats);
+      phase = "break";
+      secondsLeft = breakMinutes * 60;
+      notify("Nice work. Time for a " + breakMinutes + "-minute break.");
+    } else {
+      phase = "focus";
+      secondsLeft = workMinutes * 60;
+      notify("Break's over — back to focus.");
+    }
+    render();
+  }
+
+  function tick(){
+    secondsLeft -= 1;
+    if (secondsLeft <= 0) {
+      switchPhase();
+      return;
+    }
+    render();
+  }
+
+  function start(){
+    if (running) return;
+    requestNotifyPermission();
+    running = true;
+    tickHandle = setInterval(tick, 1000);
+    render();
+  }
+
+  function pause(){
+    running = false;
+    clearInterval(tickHandle);
+    render();
+  }
+
+  function reset(){
+    pause();
+    secondsLeft = (phase === "focus" ? workMinutes : breakMinutes) * 60;
+    noticeRow.textContent = "";
+    render();
+  }
+
+  function skip(){
+    pause();
+    switchPhase();
+  }
+
+  toggleBtn.addEventListener("click", () => running ? pause() : start());
+  resetBtn.addEventListener("click", reset);
+  skipBtn.addEventListener("click", skip);
+
+  modeBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      modeBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      workMinutes = Number(btn.dataset.work);
+      breakMinutes = Number(btn.dataset.break);
+      phase = "focus";
+      pause();
+      secondsLeft = workMinutes * 60;
+      noticeRow.textContent = "";
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
