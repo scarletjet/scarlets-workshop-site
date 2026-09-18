@@ -141,11 +141,15 @@
   .hero h1{ font-size: clamp(38px, 6vw, 62px); line-height: 0.98; }
   .hero h1 em{ font-style: normal; color: var(--scarlet); }
   .hero p.lede{ color: var(--ink-soft); font-size: 17px; max-width: 46ch; margin-top: 18px; }
-  .hero-cta{ display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
-  @media (max-width: 420px){
-    .hero-cta{ flex-direction: column; }
-    .hero-cta .btn{ width: 100%; justify-content: center; }
+  .social-row{ display: flex; gap: 10px; margin-top: 26px; }
+  .social-btn{
+    width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto;
+    display: grid; place-items: center;
+    border: 1px solid var(--line); color: var(--ink-soft); background: transparent;
+    transition: border-color .15s, color .15s, transform .15s;
   }
+  .social-btn:hover{ border-color: var(--scarlet); color: var(--scarlet); transform: translateY(-2px); }
+  .social-btn svg{ width: 19px; height: 19px; display: block; }
   .btn{
     display: inline-flex; align-items: center; gap: 8px;
     padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 14px;
@@ -331,7 +335,6 @@
       <a href="#/apps" data-route="apps">Apps</a>
       <a href="#/inventions" data-route="inventions">Inventions</a>
       <a href="#/tools" data-route="tools">Tools</a>
-      <a href="#/shop" data-route="shop">Shop</a>
       <a href="#/about" data-route="about">About</a>
     </nav>
   </div>
@@ -362,11 +365,28 @@
   }); };
   var appsClockTimer = null;
 
+  var SOCIALS = [
+    { name: "YouTube", url: "https://www.youtube.com/@ScarletTeaches",
+      icon: '<rect x="2.5" y="6" width="19" height="12" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/><polygon points="10,9.3 10,14.7 15,12" fill="currentColor"/>' },
+    { name: "Instagram", url: "https://www.instagram.com/scarlets.workshop/",
+      icon: '<rect x="3" y="3" width="18" height="18" rx="6" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="7" r="1.15" fill="currentColor"/>' },
+    { name: "Steam", url: "https://steamcommunity.com/id/ScarletJet/myworkshopfiles/",
+      icon: '<circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="15" r="2.1" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10.6" y1="13.6" x2="13.2" y2="10.9" stroke="currentColor" stroke-width="1.5"/>' }
+  ];
+  function socialIcon(s){
+    return '<a class="social-btn" href="'+esc(s.url)+'" target="_blank" rel="noopener" aria-label="'+esc(s.name)+'">'
+      + '<svg viewBox="0 0 24 24" aria-hidden="true">'+s.icon+'</svg></a>';
+  }
+
   var APPS = [
     { name: "Video → Steps", icon: "🎬", url: "https://scarlets-workshop.itch.io/video-to-steps",
       desc: "How-to videos become written guides", colors: ["#5b5bd6", "#8f8ff6"] }
   ];
   var INVENTIONS = null; /* null = still loading; [] = loaded, none live */
+  var EXTERNAL_INVENTIONS = [
+    { name: "Free PDF Library", emoji: "📄", url: "https://www.freepdflibrary.com", priceLabel: "Free",
+      tagline: "A free, growing library of downloadable PDFs." }
+  ];
   var INV_WRITEUPS = [
     { title: "Video → Steps", emoji: "🎬", url: "inventions/video-to-steps/", tag: "Overview",
       desc: "How-to videos become written guides — an overview of the app." }
@@ -408,11 +428,13 @@
       + '<span class="icon-label">'+esc(a.name)+'</span></a>';
   }
   function inventionRow(v){
-    var price = v.price > 0 ? "$" + (v.price/100).toFixed(2) : "—";
+    var price = v.price > 0 ? "$" + (v.price/100).toFixed(2) : (v.priceLabel || "—");
     var thumb = v.hero
       ? '<img src="'+esc(v.hero)+'" alt="" style="width:100%;height:100%;object-fit:cover;">'
       : (v.emoji || "🛠️");
-    return '<a class="list-row" href="inventions/'+esc(v.slug)+'/">'
+    var href = v.url || ("inventions/" + esc(v.slug) + "/");
+    var target = isExternal(href) ? ' target="_blank" rel="noopener"' : '';
+    return '<a class="list-row" href="'+href+'"'+target+'>'
       + '<span class="row-thumb">'+thumb+'</span>'
       + '<span><span class="row-title">'+esc(v.name)+'</span>'
       + '<div class="row-desc">'+esc(v.tagline||"")+'</div></span>'
@@ -427,8 +449,8 @@
       + '<span class="row-price mono">'+esc(w.tag)+'</span>'
       + '<span class="row-cta">Open</span></a>';
   }
-  function inventionsListHTML(items){
-    if (items === null) return '<p class="empty-note">Loading inventions…</p>';
+  function inventionsListHTML(){
+    var items = EXTERNAL_INVENTIONS.concat(Array.isArray(INVENTIONS) ? INVENTIONS : []);
     if (!items.length) return '<p class="empty-note">No purchasable inventions listed yet — physical builds land here first.</p>';
     return '<div class="list-rows">' + items.map(inventionRow).join("") + '</div>';
   }
@@ -469,10 +491,7 @@
                 + '<span class="eyebrow">Apps · Art · Webpages</span>'
                 + '<h1>Built to be <em>used</em>,<br>not just admired.</h1>'
                 + '<p class="lede">Scarlet\'s Workshop makes apps, art, and webpages that are convenient to use — plus a few physical inventions you can bolt straight to a job site.</p>'
-                + '<div class="hero-cta">'
-                  + '<a class="btn btn-solid" href="#/inventions">Shop inventions</a>'
-                  + '<a class="btn btn-outline" href="#/apps">See the apps</a>'
-                + '</div>'
+                + '<div class="social-row">' + SOCIALS.map(socialIcon).join("") + '</div>'
               + '</div>'
               + '<div class="gauge-panel"><canvas id="gauge" aria-label="Illustrated workshop gauge and blueprint grid" role="img"></canvas></div>'
             + '</div>'
@@ -485,12 +504,17 @@
 
           + '<section class="stack">'
             + '<div class="sec-head"><h2>Inventions</h2><a class="see-all" href="#/inventions">See all →</a></div>'
-            + inventionsListHTML(INVENTIONS)
+            + inventionsListHTML()
           + '</section>'
 
           + '<section class="stack">'
-            + '<div class="sec-head"><h2>Shop</h2><a class="see-all" href="#/shop">See all ' + PRODUCTS.length + ' →</a></div>'
-            + '<div class="shop-grid">' + PRODUCTS.slice(0,3).map(shopCard).join("") + '</div>'
+            + '<div class="sec-head"><h2>Write-ups</h2></div>'
+            + '<div class="list-rows">' + INV_WRITEUPS.map(writeupRow).join("") + '</div>'
+          + '</section>'
+
+          + '<section class="stack">'
+            + '<div class="sec-head"><h2>Tools</h2></div>'
+            + '<div class="list-rows">' + INV_TOOLS.map(writeupRow).join("") + '</div>'
           + '</section>'
 
           + ctaBlock;
@@ -533,7 +557,7 @@
         return ''
           + '<div class="stack page-head"><span class="eyebrow">CAD · STL · PDF downloads</span><h1>Inventions</h1><p>Physical tools designed in the workshop, sold as downloadable build files — print or machine them yourself.</p></div>'
           + '<section class="stack no-rule">'
-            + inventionsListHTML(INVENTIONS)
+            + inventionsListHTML()
           + '</section>'
           + '<section class="stack">'
             + '<div class="sec-head"><h2>Write-ups</h2></div>'
@@ -554,37 +578,6 @@
           + '<div class="stack page-head"><span class="eyebrow">' + TOOLS.length + ' live</span><h1>Webpage tools</h1><p>Free, no-signup tools built for one job each.</p></div>'
           + '<section class="stack no-rule"><div class="tools-grid">' + TOOLS.map(toolCard).join("") + '</div></section>'
           + ctaBlock;
-      }
-    },
-
-    "shop": {
-      title: "Shop — Scarlet's Workshop",
-      render: function(){
-        return ''
-          + '<div class="stack page-head"><span class="eyebrow">Gumroad &amp; Etsy</span><h1>Shop</h1><p>Digital packs and physical prints, sold off-site on Gumroad and Etsy.</p></div>'
-          + '<section class="stack no-rule">'
-            + '<div class="filters" id="shop-filters">'
-              + '<button class="filter-btn" data-filter="all" aria-pressed="true">All</button>'
-              + '<button class="filter-btn" data-filter="gumroad" aria-pressed="false">Gumroad</button>'
-              + '<button class="filter-btn" data-filter="etsy" aria-pressed="false">Etsy</button>'
-            + '</div>'
-            + '<div class="shop-grid" id="shop-grid">' + PRODUCTS.map(shopCard).join("") + '</div>'
-          + '</section>'
-          + ctaBlock;
-      },
-      afterRender: function(){
-        var filters = document.getElementById("shop-filters");
-        var grid = document.getElementById("shop-grid");
-        if (!filters) return;
-        filters.addEventListener("click", function(e){
-          var btn = e.target.closest(".filter-btn");
-          if (!btn) return;
-          filters.querySelectorAll(".filter-btn").forEach(function(b){ b.setAttribute("aria-pressed", "false"); });
-          btn.setAttribute("aria-pressed", "true");
-          var f = btn.dataset.filter;
-          var items = f === "all" ? PRODUCTS : PRODUCTS.filter(function(p){ return p.platform === f; });
-          grid.innerHTML = items.map(shopCard).join("");
-        });
       }
     },
 
