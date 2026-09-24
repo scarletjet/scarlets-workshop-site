@@ -8,13 +8,13 @@
 <style>
   :root{
     --bg: #0a0e14; --card: rgba(255,255,255,0.045); --card-border: rgba(255,255,255,0.09);
-    --text: #e8edf4; --muted: #8b95a5; --accent: #4fd8ff; --accent-2: #a06bff;
+    --text: #e8edf4; --muted: #8b95a5; --accent: #FF4A63; --accent-2: #ff7a5c;
   }
   *{ box-sizing: border-box; margin: 0; padding: 0; }
   body{
     background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
-    background-image: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(79,216,255,0.13), transparent);
+    background-image: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(255,74,99,0.13), transparent);
   }
   .wrap{ max-width: 680px; margin: 0 auto; padding: 48px 20px 80px; }
   .back{
@@ -35,7 +35,7 @@
   .card p{ font-size: 14.5px; color: var(--muted); }
   code{
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 13px; color: var(--accent); background: rgba(79,216,255,0.08);
+    font-size: 13px; color: var(--accent); background: rgba(255,74,99,0.08);
     padding: 2px 7px; border-radius: 6px;
   }
 </style>
@@ -44,15 +44,15 @@
 <div class="wrap">
   <a class="back" href="../../">← Back to Scarlet's Workshop</a>
   <h1>This is a <span>nested creation</span></h1>
-  <p class="sub">A page living at <code>scarletsworkshop.live/pages/starter/</code></p>
+  <p class="sub">A page living at <code>scarletsworkshop.live/pages/starter/</code> — the original nested-creation template, kept here for reference.</p>
 
   <div class="card">
     <h2>How this works</h2>
-    <p>Every creation is a folder inside <code>pages/</code> (or <code>apps/</code>) with its own <code>index.html</code>. The folder name becomes the web address — no extra configuration needed.</p>
+    <p>Every creation is a folder with its own <code>index.html</code>. The folder name becomes the web address automatically — no extra configuration needed. New creations belong under <code>tools/</code>, e.g. <code>tools/color-picker/</code>.</p>
   </div>
   <div class="card">
     <h2>Add your own</h2>
-    <p>Copy this folder, rename it (lowercase, hyphens instead of spaces), replace this page with your creation, and add a link to it in the <code>PAGES</code> or <code>APPS</code> list on the homepage.</p>
+    <p>Copy this template into <code>tools/&lt;your-slug&gt;/</code>, rename it (lowercase, hyphens instead of spaces), replace this page with your creation, and add an entry to the <code>TOOLS</code> array near the top of the <code>&lt;script&gt;</code> block in the homepage's <code>index.html</code>.</p>
   </div>
   <div class="card">
     <h2>The back button</h2>

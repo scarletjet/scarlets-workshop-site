@@ -46,9 +46,8 @@ re-enable, but nothing currently links to `#/shop`.
   page (`video-to-steps`, `the-launch-shelf`, `fleet-one-shot-builder` — originally Claude Artifacts,
   copied in verbatim plus site chrome). Listed in `EXTERNAL_INVENTIONS` / `INV_WRITEUPS` / `INV_TOOLS`.
 - **`apps/`** and **`pages/`** are vestigial: `apps/` now holds only a stale README (real apps moved to
-  `tools/`), and `pages/starter/` is an old copy-template still on the pre-redesign cyan/violet palette.
-  Don't use `pages/starter/` as a starting point for new pages — copy the structure of a recent
-  `tools/*/index.html` instead.
+  `tools/`), and `pages/starter/` is an old copy-template nothing else references. It's on-theme now,
+  but new pages still follow the `tools/*/index.html` convention rather than copying it.
 
 ### Inventions + Stripe checkout is the one part with real backend logic
 - One **slug** is shared across four places: the Drive handoff folder, `inventions/<slug>/`, the site
@@ -67,9 +66,8 @@ re-enable, but nothing currently links to `#/shop`.
   project isn't Git-linked, so pushes to `main` don't auto-redeploy it.
 
 ### Design language
-Brand is "scarlet" (deep red/garnet), replacing the site's original cyan/violet theme. Most pages have
-migrated (`index.html`, `tools/*`, `inventions/_template`, `inventions/success`); `pages/starter/` has
-not. Each tool/invention layers its own accent color on top of the shared scarlet "back to workshop"
-chrome — this is an established pattern, not inconsistency. `tools/video-to-steps`-style pages that
-predate the redesign explicitly separate `--accent` (the app's own colour) from `--brand` (the scarlet
-Workshop mark); newer pages just use one accent set throughout.
+Brand is "scarlet" (deep red/garnet), replacing the site's original cyan/violet theme — every page has
+now migrated. Each tool/invention layers its own accent color on top of the shared scarlet "back to
+workshop" chrome — this is an established pattern, not inconsistency. `inventions/video-to-steps`, a
+page that predates the redesign, explicitly separates `--accent` (the app's own colour) from `--brand`
+(the scarlet Workshop mark); newer pages just use one accent set throughout.
