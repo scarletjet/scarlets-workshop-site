@@ -6,7 +6,7 @@ The website for Scarlet's Workshop: apps, art, and webpages that are convenient 
 
 ```
 index.html          ← the hub (homepage: app drawer, webpages, inventions, shop)
-CNAME               ← tells GitHub Pages this site lives at scarletsworkshop.live
+CNAME               ← leftover from GitHub Pages; the site is now hosted via Coolify on the VPS
 apps/               ← deployed apps, one folder per app
 pages/              ← webpage creations, one folder per page
   starter/          ← a live example you can copy

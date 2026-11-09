@@ -6,7 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 scarletsworkshop.live — a personal hub site for Scarlet's Workshop: small web tools, apps, physical
 inventions sold via Stripe, and external links (itch.io, Gumroad/Etsy, social). No framework, no build
-step for the site itself — plain static HTML served by GitHub Pages (custom domain via `CNAME`).
+step for the site itself — plain static HTML served by nginx on Scarlet's own Contabo VPS via Coolify
+(Static build pack, GitHub App webhook: every push to `main` auto-deploys in ~30s). `www` redirects to
+the apex in Coolify. The `CNAME` file is a leftover from the old GitHub Pages hosting and is harmless.
+Every page's `<head>` carries the self-hosted Umami tracking tag (stats.scarletsworkshop.live) — keep it
+when adding new pages.
 
 ## Commands
 
@@ -60,7 +64,7 @@ re-enable, but nothing currently links to `#/shop`.
   what the homepage's Inventions section fetches at runtime, merged with the static
   `EXTERNAL_INVENTIONS` list in `index.html`.
 - The checkout flow (`api/checkout.js`, `api/verify.js`, `api/_lib.js`) is a **separate deployment** —
-  GitHub Pages can't run server code, so these deploy to Vercel independently and the static site calls
+  the static site has no server runtime, so these deploy to Vercel independently and the static site calls
   them by URL (`inventions/config.js` holds that base URL). See `api/README.md` for the deploy/env-var
   story; it needs `STRIPE_SECRET_KEY` set on Vercel before checkout actually works, and that Vercel
   project isn't Git-linked, so pushes to `main` don't auto-redeploy it.
