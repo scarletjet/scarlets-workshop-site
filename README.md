@@ -42,7 +42,7 @@ checkout endpoint + setting `STRIPE_SECRET_KEY`.
 
 ## Editing the homepage
 
-Apps, webpages and the Gumroad/Etsy shop live in the `SITE`, `APPS`, `PAGES`, and
+Apps, webpages and the (hidden) shop list live in the `SITE`, `APPS`, `PAGES`, and
 `PRODUCTS` lists near the top of the `<script>` block in `index.html`. The
 **Inventions** section renders itself from `inventions/catalog.json`. Theme colors
 are in the `:root` block at the top of the CSS.

@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 scarletsworkshop.live — a personal hub site for Scarlet's Workshop: small web tools, apps, physical
-inventions sold via Stripe, and external links (itch.io, Gumroad/Etsy, social). No framework, no build
+inventions sold via Stripe, and external links (itch.io, social). No framework, no build
 step for the site itself — plain static HTML served by nginx on Scarlet's own Contabo VPS via Coolify
 (Static build pack, GitHub App webhook: every push to `main` auto-deploys in ~30s). `www` redirects to
 the apex in Coolify. The `CNAME` file is a leftover from the old GitHub Pages hosting and is harmless.
