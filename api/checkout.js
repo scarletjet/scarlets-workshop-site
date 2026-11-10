@@ -23,6 +23,7 @@ export default async function handler(req, res) {
           product_data: {
             name: product.name,
             description: product.tagline || undefined,
+            tax_code: product.taxCode || undefined,
             metadata: { slug },
           },
         },
@@ -38,6 +39,10 @@ export default async function handler(req, res) {
       // digital goods — no shipping
       billing_address_collection: "auto",
       allow_promotion_codes: true,
+      // Stripe turns Managed Payments (Stripe as merchant of record) on by default,
+      // and it refuses any product without an eligible tax code. Off unless
+      // STRIPE_MANAGED_PAYMENTS=on, in which case every product needs a taxCode.
+      ...(process.env.STRIPE_MANAGED_PAYMENTS === "on" ? {} : { managed_payments: { enabled: false } }),
     });
     return res.status(200).json({ url: session.url });
   } catch (e) {

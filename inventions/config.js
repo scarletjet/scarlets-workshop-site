@@ -1,3 +1,4 @@
 /* The deployed checkout API base URL (no trailing slash). See api/README.md.
-   Live checkout also needs STRIPE_SECRET_KEY set on that Vercel project. */
-window.WORKSHOP_API = "https://scarlets-workshop-api.vercel.app";
+   Runs on the Workshop's Coolify server (server.mjs). Live checkout also needs
+   STRIPE_SECRET_KEY and SITE_URL set on that Coolify app. */
+window.WORKSHOP_API = "https://scarlets-workshop-api-beta.scarletsworkshop.live";
