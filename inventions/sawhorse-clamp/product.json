@@ -1,0 +1,12 @@
+{
+  "slug": "sawhorse-clamp",
+  "name": "Sawhorse Clamp",
+  "emoji": "🛠️",
+  "tagline": "Test listing for checking the Buy button. Not for sale yet.",
+  "price": 1900,
+  "currency": "usd",
+  "description": "This page is hidden and only used to test checkout in Stripe test mode. No files are delivered yet.",
+  "images": [],
+  "downloads": [],
+  "stripePriceId": "price_1Ua691Ryuik0QV3pt5XM5F3i"
+}
